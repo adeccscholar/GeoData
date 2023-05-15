@@ -1,0 +1,19 @@
+CREATE TABLE [dbo].[Brandenburg](
+	[Land_ID] [int] NULL,
+	[Region_ID] [int] NULL,
+	[Kreis_ID] [int] NULL,
+	[Gemeinde_ID] [int] NULL,
+	[Ortsteil_ID] [int] NULL,
+	[Strasse_ID] [int] NULL,
+	[HNR] [int] NULL,
+	[ADZ] [varchar](1) NULL,
+	[Land] [varchar](50) NULL,
+	[Kreis] [varchar](50) NULL,
+	[Amt] [varchar](50) NULL,
+	[Gemeinde] [varchar](50) NULL,
+	[Ort] [varchar](50) NULL,
+	[Strasse] [varchar](50) NULL,
+	[PLZ] [varchar](50) NULL,
+	[X] [float] NULL,
+	[Y] [float] NULL
+)
