@@ -3,6 +3,7 @@
 
 #include <adecc_Scholar/MyStream.h>
 #include <adecc_Scholar/MyForm.h>
+#include "MyDatabase.h"
 
 #include <iostream>
 #include <vector>
@@ -41,8 +42,21 @@ DataApp::DataApp(QWidget *parent) : QMainWindow(parent) {
     std::clog << "ready" << std::endl;
 
     connect(ui.btnConnect, &QPushButton::clicked, this, [this]() {
+       try {
+          TMyDatabase<TMyQtDb> data = { "TrainingNeu1" };
+          data.Open();
+          }
+       catch(TMy_Db_Exception& ex) {
+          std::cerr << ex.information() << std::endl;
+          }
+       catch(std::exception& ex) {
+          std::cerr << ex.what() << std::endl;
+          }
+
+       /*
        db = QSqlDatabase::addDatabase("QODBC");
        db.setDatabaseName("DRIVER={SQL Server Native Client 11.0};SERVER=(local);DATABASE=TrainingNeu;Trusted_Connection=yes;");
+       
        TMyWait wait;
        if(!db.open()) {
           std::cerr << "Fehler bei der Verbindung: " << db.lastError().text().toStdString() << std::endl;
@@ -50,6 +64,7 @@ DataApp::DataApp(QWidget *parent) : QMainWindow(parent) {
        else [[likely]] {
           std::clog << "connected successful" << std::endl;
           }
+        */
        /*
           //QString queryText = "SELECT * FROM PErson WHERE Firstname = :firstName";
           QString queryText = "SELECT * FROM Person";
