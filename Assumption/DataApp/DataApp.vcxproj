@@ -114,6 +114,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MyDatabaseCredentials.h" />
+    <ClInclude Include="MyDatabaseExceptions.h" />
     <ClInclude Include="MyDatabase.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
