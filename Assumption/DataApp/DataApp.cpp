@@ -43,7 +43,8 @@ DataApp::DataApp(QWidget *parent) : QMainWindow(parent) {
 
     connect(ui.btnConnect, &QPushButton::clicked, this, [this]() {
        try {
-          TMyDatabase<TMyQtDb> data = { "TrainingNeu1" };
+          TMyDatabase<TMyQtDb, TMyMSSQL> data;
+          data += TMyMSSQL { "TrainingNeu1" };
           data.Open();
           }
        catch(TMy_Db_Exception& ex) {
