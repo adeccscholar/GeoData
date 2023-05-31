@@ -15,9 +15,9 @@ TStreamWrapper<Narrow> old_cerr(std::cerr);
 TStreamWrapper<Narrow> old_clog(std::clog);
 
 std::vector<tplList<Latin>> Columns{
-    tplList<Latin> { "city",   300, EMyAlignmentType::left },
-    tplList<Latin> { "street", 350, EMyAlignmentType::left },
-    tplList<Latin> { "id",     150, EMyAlignmentType::right }
+    tplList<Latin> { "name",      300, EMyAlignmentType::left },
+    tplList<Latin> { "firstname", 350, EMyAlignmentType::left },
+    tplList<Latin> { "id",        150, EMyAlignmentType::right }
 };
 
 DataApp::DataApp(QWidget *parent) : QMainWindow(parent) {
@@ -44,8 +44,21 @@ DataApp::DataApp(QWidget *parent) : QMainWindow(parent) {
     connect(ui.btnConnect, &QPushButton::clicked, this, [this]() {
        try {
           TMyDatabase<TMyQtDb, TMyMSSQL> data;
-          data += TMyMSSQL { "TrainingNeu1" };
-          data.Open();
+          data = TMyMSSQL { "TrainingNeu" };
+          if(!data.Open()) {
+             std::cerr << "Fehler bei der Verbindung: " << db.lastError().text().toStdString() << std::endl;
+             }
+          else [[likely]] {
+             std::clog << "connected successful" << std::endl;
+             TMyWait wait;
+             auto query = data.CreateQuery();
+             query.SetSQL("SELECT * FROM Person");
+             for(query.Execute(), query.First(); !query.IsEof(); query.Next()) {
+                std::cout << query.Get<std::string>("name").value_or("-") << "\t" 
+                          << query.Get<std::string>("Firstname").value_or("-") << "\t" 
+                          << *query.Get<int>("ID", true) << std::endl;
+                }
+             }
           }
        catch(TMy_Db_Exception& ex) {
           std::cerr << ex.information() << std::endl;
@@ -54,18 +67,6 @@ DataApp::DataApp(QWidget *parent) : QMainWindow(parent) {
           std::cerr << ex.what() << std::endl;
           }
 
-       /*
-       db = QSqlDatabase::addDatabase("QODBC");
-       db.setDatabaseName("DRIVER={SQL Server Native Client 11.0};SERVER=(local);DATABASE=TrainingNeu;Trusted_Connection=yes;");
-       
-       TMyWait wait;
-       if(!db.open()) {
-          std::cerr << "Fehler bei der Verbindung: " << db.lastError().text().toStdString() << std::endl;
-          }
-       else [[likely]] {
-          std::clog << "connected successful" << std::endl;
-          }
-        */
        /*
           //QString queryText = "SELECT * FROM PErson WHERE Firstname = :firstName";
           QString queryText = "SELECT * FROM Person";

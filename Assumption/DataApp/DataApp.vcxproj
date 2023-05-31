@@ -115,8 +115,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MyDatabaseCredentials.h" />
+    <ClInclude Include="MyDatabaseDefinitions.h" />
     <ClInclude Include="MyDatabaseExceptions.h" />
     <ClInclude Include="MyDatabase.h" />
+    <ClInclude Include="MyFileIterator.h" />
+    <ClInclude Include="MyHelper.h" />
+    <ClInclude Include="MyLocation.h" />
+    <ClInclude Include="MyType_Traits.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

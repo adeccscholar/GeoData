@@ -7,7 +7,7 @@ Copyright © 2001 - 2016. Alle Rechte vorbehalten.
 
 */
 
-INSERT INTO AddressTypes (ID, Denotation, Abbreviation, Description, UrgentValue, ) VALUES
+INSERT INTO AddressTypes (ID, Denotation, Abbreviation, Description, UrgentValue ) VALUES
    (1, 'Hauptadresse', 'HA', 'Hauptadresse für die Anwendung', 1),
    (2, 'Rechnungsadresse', 'RA', 'Rechnungsadresse für die Anwendung', 0),
    (3, 'Lieferadresse', 'LA', 'Lieferadresse für die Trainingsanwendung', 0),
