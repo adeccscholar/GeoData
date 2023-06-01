@@ -18,7 +18,6 @@ CREATE TABLE Thueringen_Schluessel (
    Region_ID        integer NULL,
    Kreis_ID         integer NULL,
    Gemeinde_ID      integer NULL,
-   Ortsteil_ID      integer NULL,
    Bezeichnung      varchar(75)
 );
 
@@ -27,7 +26,6 @@ CREATE TABLE Thueringen (
    Region_ID        integer NULL,
    Kreis_ID         integer NULL,
    Gemeinde_ID      integer NULL,
-   Ortsteil_ID      integer NULL,
    Strasse_ID       integer NULL,
    Strasse          varchar(75) NULL,
    HNR              integer NULL,	
@@ -40,7 +38,7 @@ CREATE TABLE Thueringen (
 GO
 
 CREATE VIEW vw_Thueringen AS
-SELECT a.Land_ID, a.Region_ID, a.Kreis_ID, a.Gemeinde_ID, a.Ortsteil_ID, a.Strasse_ID,  
+SELECT a.Land_ID, a.Region_ID, a.Kreis_ID, a.Gemeinde_ID, a.Strasse_ID,  
        b.Bezeichnung AS Land, c.Bezeichnung AS Kreis, d.Bezeichnung AS Gemeinde,
        a.Strasse, a.HNR, a.ADZ, a.PLZ, 
        a.Laengengrad, a.Breitengrad
