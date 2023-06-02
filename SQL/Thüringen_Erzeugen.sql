@@ -4,6 +4,7 @@ Use Geodaten;
 DROP TABLE Thueringen_Staedte;
 DROP TABLE Thueringen_Kreise;
 
+DROP VIEW vw_Thueringen_Kreise;
 DROP VIEW vw_Thueringen;
 
 DROP TABLE Thueringen;
@@ -37,6 +38,17 @@ CREATE TABLE Thueringen (
 
 GO
 
+CREATE VIEW vw_Thueringen_Kreise AS
+  SELECT Land_ID, Kreis_ID, Bezeichnung as Kreis, 'kreisfreie Stadt' AS ART
+  FROM Thueringen_Schluessel
+  WHERE Satzart = 'Kreis' AND Kreis_ID < 60
+UNION
+  SELECT Land_ID, Kreis_ID, Bezeichnung as Kreis, 'Kreis' AS ART
+  FROM Thueringen_Schluessel
+  WHERE Satzart = 'Kreis' AND Kreis_ID >= 60;
+  
+GO 
+ 
 CREATE VIEW vw_Thueringen AS
 SELECT a.Land_ID, a.Region_ID, a.Kreis_ID, a.Gemeinde_ID, a.Strasse_ID,  
        b.Bezeichnung AS Land, c.Bezeichnung AS Kreis, d.Bezeichnung AS Gemeinde,
