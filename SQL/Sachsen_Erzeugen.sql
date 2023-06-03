@@ -1,4 +1,4 @@
-Use Geodaten;
+USE Geodaten;
 
 CREATE TABLE Sachsen_Schluessel (
    Satzart          VARCHAR(20) NULL,
@@ -46,10 +46,12 @@ CREATE VIEW vw_Sachsen_Land AS
   FROM Sachsen_Schluessel
   WHERE Satzart = 'Land';
 
+
 CREATE VIEW vw_Sachsen_Regionen AS
   SELECT DISTINCT Land_ID, Region_ID, SUBSTRING(Bezeichnung, 15, LEN(Bezeichnung) - 14) AS Region
   FROM Sachsen_Schluessel
   WHERE Satzart = 'Region';
+
   
 CREATE VIEW vw_Sachsen_Kreise AS
   SELECT Land_ID, Region_ID, Kreis_ID, SUBSTRING(Bezeichnung, 18, LEN(Bezeichnung) - 17) AS Kreis, 'kreisfrei' AS ART 
@@ -78,29 +80,53 @@ UNION
 
 CREATE VIEW vw_Sachsen_Staedte AS
   SELECT a.Gemeinde, b.Kreis, b.Art, a.Land_ID, a.Region_ID, a.Kreis_ID, a.Gemeinde_ID 
-  FROM vw_Sachsen_Gemeinden a LEFT JOIN vw_Sachsen_Kreise b ON (b.Land_ID = a.Land_ID and b.Kreis_ID = a.Kreis_ID)
+  FROM vw_Sachsen_Gemeinden a LEFT JOIN vw_Sachsen_Kreise b ON (b.Land_ID = a.Land_ID AND b.Kreis_ID = a.Kreis_ID)
   WHERE a.Art = 'Stadt';
+UNION
+  SELECT SUBSTRING(Bezeichnung, 18, LEN(Bezeichnung) - 17) AS Gemeinde, NULL AS Kreis, "Kreisfreie Stadt" AS Art,
+         Land_ID, Region_ID, Kreis_ID, 0 AS Gemeinde_ID 
+  FROM Sachsen_Schluessel
+  WHERE Satzart = 'Kreis'  AND Bezeichnung LIKE 'Kreisfreie Stadt%';
 
 
 CREATE TABLE Sachsen_Kreise (
-   Kreis                 varchar(75) NULL,
-   Abkuerzung            varchar(10) NULL,
-   Art                   varchar(25) NULL,
-   Kreisstadt            varchar(75) NULL,
-   Kfz_Kennzeichen       varchar(150) NULL,
-   Land_ID               integer NULL,
-   Region_ID             integer NULL,
-   Kreis_ID              integer NULL,
-   Breitengrad           float NULL,
-   Laengengrad           float NULL,
-   Verwaltung            varchar(75) NULL,
-   Verw_Adr_PLZ          varchar(5) NULL,
-   Verw_Adr_Ort          varchar(75) NULL,
-   Verw_Adr_Strasse      varchar(75) NULL,
-   Verw_Adr_Nummer       varchar(20) NULL,
-   Verw_Adr_Breitengrad  float NULL,
-   Verw_Adr_Laengegrad   float NULL
-);
+   Kreis                 VARCHAR(75) NULL,
+   Abkuerzung            VARCHAR(10) NULL,
+   Art                   VARCHAR(25) NULL,
+   Kreisstadt            VARCHAR(75) NULL,
+   Kfz_Kennzeichen       VARCHAR(150) NULL,
+   Land_ID               INTEGER NULL,
+   Region_ID             INTEGER NULL,
+   Kreis_ID              INTEGER NULL,
+   Breitengrad           FLOAT NULL,
+   Laengengrad           FLOAT NULL,
+   Verwaltung            VARCHAR(75) NULL,
+   Verw_Adr_PLZ          VARCHAR(5) NULL,
+   Verw_Adr_Ort          VARCHAR(75) NULL,
+   Verw_Adr_Strasse      VARCHAR(75) NULL,
+   Verw_Adr_Nummer       VARCHAR(20) NULL,
+   Verw_Adr_Breitengrad  FLOAT NULL,
+   Verw_Adr_Laengegrad   FLOAT NULL
+   );
+
+CREATE TABLE Sachsen_Staedte (
+   Stadt                 VARCHAR(75) NULL,
+   Kreis                 VARCHAR(75) NULL,
+   Art                   VARCHAR(25) NULL,
+   Land_ID               INTEGER NULL,
+   Region_ID             INTEGER NULL,
+   Kreis_ID              INTEGER NULL,
+   Gemeinde_ID           INTEGER NULL,
+   Breitengrad           FLOAT NULL,
+   Laengengrad           FLOAT NULL,
+   Verwaltung            VARCHAR(75) NULL,
+   Verw_Adr_PLZ          VARCHAR(5) NULL,
+   Verw_Adr_Ort          VARCHAR(75) NULL,
+   Verw_Adr_Strasse      VARCHAR(75) NULL,
+   Verw_Adr_Nummer       VARCHAR(20) NULL,
+   Verw_Adr_Breitengrad  FLOAT NULL,
+   Verw_Adr_Laengegrad   FLOAT NULL
+   );
 
 INSERT INTO Sachsen_Kreise (Kreis,Abkuerzung,Art,Kreisstadt,Kfz_Kennzeichen,Land_ID,Region_ID, Kreis_ID,Breitengrad,Laengengrad,Verwaltung,Verw_Adr_PLZ,Verw_Adr_Ort,Verw_Adr_Strasse,Verw_Adr_Nummer,Verw_Adr_Breitengrad,Verw_Adr_Laengegrad) VALUES ('Bautzen', 'BZ', 'Kreis', 'Bautzen', 'BZ, BIW, HY, KM', 14, 6, 25, 51.1835, 14.4344, 'Landratsamt Bautzen', '02625', 'Bautzen', 'Bahnhofstraße', '9', 51.1807, 14.4284);
 INSERT INTO Sachsen_Kreise (Kreis,Abkuerzung,Art,Kreisstadt,Kfz_Kennzeichen,Land_ID,Region_ID, Kreis_ID,Breitengrad,Laengengrad,Verwaltung,Verw_Adr_PLZ,Verw_Adr_Ort,Verw_Adr_Strasse,Verw_Adr_Nummer,Verw_Adr_Breitengrad,Verw_Adr_Laengegrad) VALUES ('Chemnitz', 'C', 'kreisfreie Stadt', NULL, 'C', 14, 5, 11, 50.8321, 12.9253, 'Stadt Chemnitz', '09106', 'Chemnitz', 'Markt', '1', 50.8297, 12.9219);
@@ -112,4 +138,6 @@ INSERT INTO Sachsen_Kreise (Kreis,Abkuerzung,Art,Kreisstadt,Kfz_Kennzeichen,Land
 INSERT INTO Sachsen_Kreise (Kreis,Abkuerzung,Art,Kreisstadt,Kfz_Kennzeichen,Land_ID,Region_ID, Kreis_ID,Breitengrad,Laengengrad,Verwaltung,Verw_Adr_PLZ,Verw_Adr_Ort,Verw_Adr_Strasse,Verw_Adr_Nummer,Verw_Adr_Breitengrad,Verw_Adr_Laengegrad) VALUES ('Mittelsachsen', 'FG', 'Kreis', 'Freiberg', ' FG, BED, DL, FLÖ, HC, MW, RL', 14, 5, 22, 51.0326, 13.2718, 'Landratsamt Mittelsachsen', '09599', 'Freiberg', 'Frauensteiner Straße', '43', 50.9255, 13.3179);
 INSERT INTO Sachsen_Kreise (Kreis,Abkuerzung,Art,Kreisstadt,Kfz_Kennzeichen,Land_ID,Region_ID, Kreis_ID,Breitengrad,Laengengrad,Verwaltung,Verw_Adr_PLZ,Verw_Adr_Ort,Verw_Adr_Strasse,Verw_Adr_Nummer,Verw_Adr_Breitengrad,Verw_Adr_Laengegrad) VALUES ('Nordsachsen', 'TDO', 'Kreis', 'Torgau', 'TDO, DZ, EB, OZ, TG', 14, 7, 30, 51.4427, 13.5687, 'Landratsamt Nordsachsen', '04860', 'Torgau', 'August-Bebel-Straße', '1', 51.5615, 13.0032);
 INSERT INTO Sachsen_Kreise (Kreis,Abkuerzung,Art,Kreisstadt,Kfz_Kennzeichen,Land_ID,Region_ID, Kreis_ID,Breitengrad,Laengengrad,Verwaltung,Verw_Adr_PLZ,Verw_Adr_Ort,Verw_Adr_Strasse,Verw_Adr_Nummer,Verw_Adr_Breitengrad,Verw_Adr_Laengegrad) VALUES ('Sächsische Schweiz-Osterzgebirge', 'PIR', 'Kreis', 'Pirna', 'PIR, DW, FTL, SEB', 14, 6, 28, 50.9369, 13.9261, 'Landratsamt Pirna', '01796', 'Pirna', 'Schlosshof', '2', 50.9567, 13.9433);
+INSERT INTO Sachsen_Kreise (Kreis,Abkuerzung,Art,Kreisstadt,Kfz_Kennzeichen,Land_ID,Region_ID, Kreis_ID,Breitengrad,Laengengrad,Verwaltung,Verw_Adr_PLZ,Verw_Adr_Ort,Verw_Adr_Strasse,Verw_Adr_Nummer,Verw_Adr_Breitengrad,Verw_Adr_Laengegrad) VALUES ('Vogtlandkreis', 'V', 'Kreis', 'Plauen', 'V', 14, 5, 23, 50.4912, 12.3689, 'Landratsamt Vogtlandkreis', '08523', 'Plauen', 'Postplatz', '5', 50.499, 12.1377);
 INSERT INTO Sachsen_Kreise (Kreis,Abkuerzung,Art,Kreisstadt,Kfz_Kennzeichen,Land_ID,Region_ID, Kreis_ID,Breitengrad,Laengengrad,Verwaltung,Verw_Adr_PLZ,Verw_Adr_Ort,Verw_Adr_Strasse,Verw_Adr_Nummer,Verw_Adr_Breitengrad,Verw_Adr_Laengegrad) VALUES ('Zwickau', 'Z', 'Kreis', 'Zwickau', 'Z, GC, HOT, WDA', 14, 5, 24, 50.7334, 12.4473, 'Landratsamt Zwickau', '08056', 'Zwickau', 'Peter-Breuer-Straße', '12', 50.7334, 12.4473);
+
