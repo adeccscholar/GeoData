@@ -23,3 +23,24 @@ Bei der Verwendung von zeitinvarianten Daten gibt es einige wichtige Aspekte zu 
 - Zugriffsrechte verwalten: Legen Sie entsprechende Zugriffsrechte fest, um sicherzustellen, dass nur autorisierte Benutzer auf die zeitinvarianten Daten zugreifen und diese ändern können.
 
 Bei der Erfassung von zeitinvarianten Daten in einem Datenmodell ist es wichtig, die spezifischen Anforderungen und Eigenschaften der Daten zu berücksichtigen. Ein gut gestaltetes Datenmodell ermöglicht eine effiziente Verwaltung und Nutzung der zeitinvarianten Daten und gewährleistet deren Konsistenz und Integrität über die Zeit hinweg.
+
+# Qualität der Schlüssel, Hierarchien von Schlüsseln
+
+In der Datenbankmodellierung spielen Schlüssel eine wichtige Rolle bei der eindeutigen Identifizierung von Datensätzen. Es gibt zwei Arten von Schlüsseln: Primärschlüssel und Schlüsselkandidaten.
+
+## Primärschlüssel
+
+Ein Primärschlüssel ist ein eindeutiger Identifikator für einen Datensatz in einer Tabelle. Er stellt sicher, dass jeder Datensatz eindeutig identifizierbar ist und keine Duplikate vorhanden sind. Der Primärschlüssel wird normalerweise als interner Wert festgelegt, der von der Datenbank automatisch generiert wird, wie beispielsweise eine fortlaufende Nummer oder ein eindeutiger Identifikator. Interne Schlüssel haben den Vorteil, dass sie nicht von externen Einflüssen abhängig sind und somit stabiler sind. Sie können einfach und effizient in Datenbankabfragen verwendet werden.
+
+## Schlüsselkanditat
+
+Ein Schlüsselkandidat ist eine Spalte oder eine Kombination von Spalten, die als möglicher Primärschlüssel dienen können. Sie erfüllen die Anforderungen der Eindeutigkeit und Identifizierbarkeit. Im Gegensatz zum Primärschlüssel wird der Schlüsselkandidat jedoch nicht als offizieller Primärschlüssel ausgewählt, sondern bleibt eine Option. Schlüsselkandidaten können aus einer oder mehreren Spalten bestehen und können auch zusammengesetzte Schlüssel sein.
+
+Kurze Schlüssel haben gegenüber längeren, zusammengesetzten Schlüsseln Vorteile. Sie nehmen weniger Speicherplatz ein und ermöglichen eine effizientere Indexierung und Abfrageausführung. Durch die Verwendung kurzer Schlüssel können Datenbankabfragen schneller ausgeführt werden, da weniger Daten gelesen und verarbeitet werden müssen.
+
+## Hierarchen
+
+Bei der Abbildung von Hierarchien in Datenbanken können eigene Tabellen verwendet werden, um die Beziehungen zwischen den hierarchischen Elementen darzustellen. Dies ermöglicht eine effiziente Verwaltung und Abfrage von Hierarchiedaten. Ein gutes Beispiel hierfür sind die NUTS-Ebenen, bei denen Veränderungen der Hierarchie berücksichtigt werden müssen. Durch die Verwendung von separaten Tabellen für jede Hierarchieebene können Änderungen an der Hierarchie leichter verwaltet und aktualisiert werden, ohne dass umfangreiche Datenänderungen in einer einzelnen Tabelle erforderlich sind.
+
+Insgesamt ist die Verwendung von Primärschlüsseln und Schlüsselkandidaten sowie die Auswahl von internen, kurzen Schlüsseln wichtig, um die Datenintegrität, Effizienz und Leistungsfähigkeit einer Datenbank zu gewährleisten. Die Verwendung separater Tabellen zur Abbildung von Hierarchien ermöglicht eine flexible und skalierbare Verwaltung von hierarchischen Datenstrukturen.
+
