@@ -344,6 +344,39 @@ Dabei stehen im ersten Schritt die Dateien für die Adresspunkte (Grundstücke, 
 - Sachsen
 - Thüringen
 
+## Berliner Daten
+
+Die Daten für Berlin befinden sich in einer Datei, die im nationalen Datensatz gespeichert ist. Als Stadtstaat hat Berlin keine typischen NUTS- Ebenen, sondern verwendet eine eigene Unterteilung in Stadtbezirke und Ortsteile. Folgende Informationen sind in der Datei verhanden, wobei die geografischen Koordinaten in der Mercator-Projektion von ETRS89 gespeichert sind.
+
+| LfdNr.     | Feld                 | Bezeichnung | verwendet | Statistik | 
+| --------: | --------- | --------- | :-------: | :-------: | 
+| 1          | X                    | geografische Position (Mercator-Projektion von ETRS89) | ja |  | 
+| 2          | Y                    | geografische Position (Mercator-Projektion von ETRS89) | ja |  | 
+| 3          | OBJECTID             | fortlaufende Nummer |  |  | 
+| 4          | adressid             | Schlüssel innerhalb des Bestandes (Buchstabe optional, dann 6 Zahlen)  |  |  | 
+| 5          | hnr                  | Hausnummer (numerisch) | ja |  | 
+| 6          | hnr_zusatz           | Zusatz zur Hausnummer (A, B, C, …) | ja |  | 
+| 7          | str_nr               | Identifikationsnummer der Strasse im Bestand |  |  | 
+| 8          | str_name             | Name der Straße | ja |  | 
+| 9          | plz                  | PLZ | ja |  | 
+| 10         | bez_name             | Name des Bezirkes | ja |  | 
+| 11         | bez_nr               | Nummer für diesen Bezirk (2 Zahlen) |  | ja | 
+| 12         | ort_name             | Name des Ortsteils | ja |  | 
+| 13         | ort_nr               | Nummer des Ortsteils (4 Zahlen, 2 Zahlen entsprechen dem Bezirk, dann 2 Zahlen für den Ortsteil) |  | ja | 
+| 14         | plr_name             | Name der Postleitzahlregion (PLZ-Gebiet) |  |  | 
+| 15         | plr_nr               | Nummer der Postleitzahlregion (PLZ-Gebiet) |  |  | 
+| 16         | blk                  | Blocknummer, die den Adresspunkt enthält |  |  | 
+| 17         | adr_datum            | Datum, an dem der Adresspunkt erstellt oder aktualisiert wurde |  |  | 
+| 18         | str_datum            | Datum, an dem die Straßeninformationen aktualisiert wurden |  |  | 
+| 19         | qualitaet            | Qualität der Adressinformationen (z.B. hoch, mittel, niedrig) |  |  | 
+| 20         | typ                  | Typ des Adresspunkts (z.B. Gebäude, Straße, Platz) |  |  | 
+| 21         | hko_id               | Identifikationsnummer des Adresspunkts in der Hauskoordinaten-DB |  |  | 
+| 22         | stadt                | Name der Stadt, in diesem Fall "Berlin" | ja |  | 
+
+Die NUTS- Information für Berlin ist die ID = 11. Diese ist in der Datenbank nicht vorhanden, und muss beim Einspielen ergänzt werden. Die Geografischen Koordinaten sind mit der Mercator-Projektion von ETRS89 gespeichert und müssen vor dem Speichern in WGS84 (World Geodetic System 1984) umgerechnet werden.
+
+## Brandenburger Daten
+
 ## Art der Informationen:
 
 ### Personenbezogene Adresse: 
