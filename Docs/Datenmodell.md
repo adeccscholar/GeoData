@@ -373,7 +373,7 @@ Die Daten für Berlin befinden sich in einer Datei, die im nationalen Datensatz 
 | 21         | hko_id               | Identifikationsnummer des Adresspunkts in der Hauskoordinaten-DB |  |  | 
 | 22         | stadt                | Name der Stadt, in diesem Fall "Berlin" | ja |  | 
 
-Die NUTS- Information für Berlin ist die ID = 11. Diese ist in der Datenbank nicht vorhanden, und muss beim Einspielen ergänzt werden. Die Geografischen Koordinaten sind mit der Mercator-Projektion von ETRS89 gespeichert und müssen vor dem Speichern in WGS84 (World Geodetic System 1984) umgerechnet werden.
+Die NUTS- Information für Berlin ist die ID = 11. Diese ist in der Datenbank nicht vorhanden, und muss beim Einspielen ergänzt werden. Der Name der Stadt ist in Berlin mit dem Namen des Landes identisch und wird für 2 Felder übernommen. Die Geografischen Koordinaten sind mit der Mercator-Projektion von ETRS89 gespeichert und müssen vor dem Speichern in WGS84 (World Geodetic System 1984) umgerechnet werden.
 
 ## Brandenburger Daten
 
