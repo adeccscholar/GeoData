@@ -16,6 +16,7 @@ Abschließend wird darauf eingegangen, wie der Datenbanklebenszyklus in agile En
 Dieser Text lädt dazu ein, die Bedeutung relationaler Datenbanken für die moderne Gesellschaft zu erkennen und die Qualifikation der Datenbankentwickler zu erhöhen, um die Vorteile dieser Technologie voll auszuschöpfen.
 
 <br>
+
 # Datenbanken
 Eine Datenbank ist eine organisierte Sammlung von Daten, die in elektronischer Form gespeichert ist und auf effiziente Weise abgerufen, verwaltet und aktualisiert werden kann. Eine Datenbank kann als eine Datei betrachtet werden, die strukturierte Daten enthält, die einer bestimmten Datenbankstruktur folgen.
 
@@ -36,6 +37,7 @@ Es gibt verschiedene Modelle und Ansätze, um Datenbanken zu organisieren und zu
 Jedes dieser Modelle hat seine eigenen Vor- und Nachteile und wird je nach Anwendungsfall, den spezifischen Anforderungen und der Datenstruktur eingesetzt.
 
 # Relationale Datenbanken
+
 Eine relationale Datenbank besteht aus einer oder mehreren Tabellen, die aus Zeilen und Spalten bestehen. Jede Zeile in einer Tabelle repräsentiert einen Datensatz, während jede Spalte einen bestimmten Datentyp enthält, der den Inhalt der Daten definiert. Die Beziehungen zwischen den Tabellen werden durch Schlüssel definiert, die aufeinander verweisen und es ermöglichen, Daten in verschiedenen Tabellen miteinander zu verknüpfen.
 
 ## relationale Datenbanken bieten eine Reihe von Vorteilen, darunter:
@@ -49,6 +51,7 @@ Eine relationale Datenbank besteht aus einer oder mehreren Tabellen, die aus Zei
 Insgesamt spielen relationale Datenbanken eine zentrale Rolle bei der Speicherung und Verwaltung von Daten in verschiedenen Anwendungsbereichen wie Unternehmen, Regierungsbehörden, E-Commerce, Gesundheitswesen und vielen anderen. Sie sind ein wesentlicher Bestandteil vieler IT-Systeme und tragen zur Effizienz, Zuverlässigkeit und Konsistenz der Datenverarbeitung bei.
 
 ## Entwicklung und Grundlagen der relationalen Datenbanken und der Normalisierung
+
 Relationale Datenbanksysteme sind Datenbanksysteme, die auf dem relationalen Datenbankmodell basieren. Das relationale Modell wurde von Edgar F. Codd in den 1970er Jahren entwickelt und ist ein mathematisches Modell, das Daten in Tabellen organisiert. Jede Tabelle repräsentiert eine Relation, die aus Zeilen (Tupeln) und Spalten (Attribute) besteht. Das relationale Modell ermöglicht komplexe Abfragen, Datenintegrität und Konsistenz durch das Konzept von Schlüsseln, Fremdschlüsseln und Beziehungen zwischen den Tabellen.
 
 Die Relationale Algebra ist eine mathematische Notation und eine Reihe von Operationen, die auf den Tabellen des relationalen Modells angewendet werden können. Sie umfasst Operationen wie Auswahl (Selection), Projektion (Projection), Vereinigung (Union), Differenz (Difference) und Verknüpfungen wie den kartesischen Produkt (Cartesian Product) und den Join. Die Relationale Algebra ermöglicht es, komplexe Abfragen und Operationen auf den relationalen Daten durchzuführen.
@@ -76,6 +79,7 @@ Das ERM hat sich als eine der am häufigsten verwendeten Methoden zur Modellieru
 Die ERM-Notation wird oft in Kombination mit anderen Datenmodellierungstechniken verwendet, wie z.B. dem relationalen Modell, um komplexe Datenbankstrukturen zu erfassen und zu visualisieren.
 
 ## SQL
+
 SQL, was für "Structured Query Language" steht, wurde in den 1970er Jahren von IBM entwickelt, insbesondere von Dr. E.F. Codd und Donald D. Chamberlin. SQL hat sich seitdem als Standard für relationale Datenbanken etabliert und wird von den meisten Datenbankmanagementsystemen (DBMS) unterstützt. Es ermöglicht den Entwicklern eine effiziente und einheitliche Möglichkeit, auf Daten zuzugreifen, sie zu manipulieren und abzufragen, unabhängig von der zugrunde liegenden Datenbankplattform. Die Arbeit von Codd führte zu einem Paradigmenwechsel in der Datenbanktechnologie und legte den Grundstein für die Entwicklung von SQL.
 
 1970 veröffentlichte E.F. Codd ein wegweisendes Papier mit dem Titel "A Relational Model of Data for Large Shared Data Banks", in dem er das relationale Modell und seine Prinzipien vorstellte. Das relationale Modell definierte eine neue Herangehensweise an die Datenbankorganisation, bei der Daten in Tabellen mit Zeilen und Spalten organisiert werden, und Beziehungen zwischen den Tabellen durch Schlüsselbeziehungen hergestellt werden. Dieses Modell legte den Grundstein für das heutige Verständnis von relationalen Datenbanksystemen.
@@ -91,6 +95,7 @@ Der Beitrag von D.J. Date, einem bekannten Datenbankexperten und Autor, ist eben
 Insgesamt haben die Bemühungen von IBM, E.F. Codd, D.J. Date und anderen Pionieren dazu beigetragen, SQL zu einem grundlegenden Bestandteil der Datenbanktechnologie zu machen. Heute ist SQL weit verbreitet und wird von praktisch allen relationalen Datenbanksystemen unterstützt. Es hat sich als eine mächtige und flexible Sprache erwiesen, die es Entwicklern ermöglicht, komplexe Abfragen, Datenmanipulationen und Datenbankverwaltungsaufgaben effizient durchzuführen.
 
 ### Bestandteile von SQL
+
 Die SQL-Sprache (Structured Query Language) besteht aus verschiedenen Bestandteilen, die dazu dienen, Datenbanken zu verwalten und Abfragen auf ihnen durchzuführen. Die SQL-Sprache basiert auf der relationalen Algebra, die eine mathematische Grundlage für den Umgang mit relationalen Datenbanken bildet.
 
 Die Bestandteile der SQL-Sprache umfassen:
@@ -343,6 +348,41 @@ Dabei stehen im ersten Schritt die Dateien für die Adresspunkte (Grundstücke, 
 - Brandenburg
 - Sachsen
 - Thüringen
+
+## Berliner Daten
+
+Die Daten für Berlin befinden sich in einer Datei, die im nationalen Datensatz gespeichert ist. Als Stadtstaat hat Berlin keine typischen NUTS- Ebenen, sondern verwendet eine eigene Unterteilung in Stadtbezirke und Ortsteile. Folgende Informationen sind in der Datei verhanden, wobei die geografischen Koordinaten in der Mercator-Projektion von ETRS89 gespeichert sind.
+
+| LfdNr.     | Feld                 | Bezeichnung| Datentyp       | Db-Feld              | verwendet | Statistik | 
+| :--------  | ---------            | ---------| ---------      | ---------            | :--------: | :-------: | 
+| 1          | X                    | Geografische Position| double         | Latitude             | ja |  | 
+| 2          | Y                    | Geografische Position| double         | Longitude            | ja |  | 
+| 3          | OBJECTID             | fortlaufende Nummer| int            |                      |  |  | 
+| 4          | adressid             | Schlüssel innerhalb des Bestandes (Buchstabe optional, dann 6 Zahlen |                |                      |  |  | 
+| 5          | hnr                  | Hausnummer (numerisch)| int            | HNR                  | ja |  | 
+| 6          | hnr_zusatz           | Zusatz zur Hausnummer (A, B, C, …)| std::string    | ADZ                  | ja |  | 
+| 7          | str_nr               | Identifikationsnummer der Strasse im Bestand| int            | Strassen_ID          |  |  | 
+| 8          | str_name             | Name der Straße| std::string    | Strasse              | ja |  | 
+| 9          | plz                  | PLZ| std::string    | PLZ                  | ja |  | 
+| 10         | bez_name             | Name des Bezirkes| std::string    | Bezirk               | ja |  | 
+| 11         | bez_nr               | Nummer für diesen Bezirk (2 Zahlen)| int            | Bezirk_ID            |  | ja | 
+| 12         | ort_name             | Name des Ortsteils| std::string    | Ortsteil             | ja |  | 
+| 13         | ort_nr               | Nummer des Ortsteils (4 Zahlen, 2 Zahlen entsprechen dem Bezirk, dann 2 Zahlen für den Ortsteil)| int            | Ortsteil_ID          |  | ja | 
+| 14         | plr_name             | Name der Postleitzahlregion (PLZ-Gebiet)| std::string    |                      |  |  | 
+| 15         | plr_nr               | Nummer der Postleitzahlregion (PLZ-Gebiet)|                |                      |  |  | 
+| 16         | blk                  | Blocknummer, die den Adresspunkt enthält|                |                      |  |  | 
+| 17         | adr_datum            | Datum, an dem der Adresspunkt erstellt oder aktualisiert wurde|                |                      |  |  | 
+| 18         | str_datum            | Datum, an dem die Straßeninformationen aktualisiert wurden|                |                      |  |  | 
+| 19         | qualitaet            | Qualität der Adressinformationen (z.B. hoch, mittel, niedrig)|                |                      |  |  | 
+| 20         | typ                  | Typ des Adresspunkts (z.B. Gebäude, Straße, Platz)|                |                      |  |  | 
+| 21         | hko_id               | Identifikationsnummer des Adresspunkts in der Hauskoordinaten-DB|                |                      |  |  | 
+| 22         | stadt                | Name der Stadt, in diesem Fall immer "Berlin"| std::string    | Stadt                | ja |  | 
+
+
+
+Die NUTS- Information für Berlin ist die ID = 11. Diese ist in der Datenbank nicht vorhanden, und muss beim Einspielen ergänzt werden. Der Name der Stadt ist in Berlin mit dem Namen des Landes identisch und wird für 2 Felder übernommen. Die Geografischen Koordinaten sind mit der Mercator-Projektion von ETRS89 gespeichert und müssen vor dem Speichern in WGS84 (World Geodetic System 1984) umgerechnet werden.
+
+## Brandenburger Daten
 
 ## Art der Informationen:
 
