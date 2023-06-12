@@ -1,8 +1,9 @@
 ﻿#pragma once
 
+#include "Processes.h"
+
 #include <QtWidgets/QMainWindow>
 #include <QLabel>
-#include <QtSQL>
 #include "ui_DataApp.h"
 
 class DataApp : public QMainWindow
@@ -16,5 +17,7 @@ public:
 private:
     Ui::DataAppClass ui;
 
+    TProcess proc;
     QLabel* statusLabel;
+
 };

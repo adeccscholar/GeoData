@@ -13,8 +13,8 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E43CF6C1-C3E0-457D-8CB7-8980AC1AAD40}</ProjectGuid>
     <Keyword>QtVS_v304</Keyword>
-    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0.22621.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0.22621.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0</WindowsTargetPlatformVersion>
     <QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -34,11 +34,13 @@
     <QtInstall>6</QtInstall>
     <QtModules>core;gui;widgets;sql</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
+    <QtDeploy>false</QtDeploy>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>6</QtInstall>
     <QtModules>core;gui;widgets;sql</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
+    <QtDeploy>false</QtDeploy>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -107,21 +109,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="MyDatabaseCredentials.h" />
+    <ClCompile Include="Processes.cpp" />
     <QtRcc Include="DataApp.qrc" />
     <QtUic Include="DataApp.ui" />
     <QtMoc Include="DataApp.h" />
     <ClCompile Include="DataApp.cpp" />
+    <QtUic Include="UserDlg.ui" />
+    <QtMoc Include="UserDlg.h" />
+    <ClCompile Include="Processes_Show.cpp" />
+    <ClCompile Include="Processes_Migrate.cpp" />
+    <ClCompile Include="UserDlg.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MyDatabaseCredentials.h" />
+    <ClInclude Include="MyFileIterator.h" />
+    <ClInclude Include="MyLocation.h" />
+    <ClInclude Include="Processes.h" />
+    <ClInclude Include="MyDatabase.h" />
     <ClInclude Include="MyDatabaseDefinitions.h" />
     <ClInclude Include="MyDatabaseExceptions.h" />
-    <ClInclude Include="MyDatabase.h" />
-    <ClInclude Include="MyFileIterator.h" />
     <ClInclude Include="MyHelper.h" />
-    <ClInclude Include="MyLocation.h" />
-    <ClInclude Include="MyType_Traits.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

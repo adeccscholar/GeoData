@@ -16,6 +16,7 @@
 #include <chrono>
 #include <optional>
 #include <ranges>
+#include <limits>
 
 using namespace std::literals;
 
@@ -36,6 +37,11 @@ public:
 
    void Create() { 
       query = database.CreateQueryObject();
+      }
+
+   void Create(std::string const& strSQL, std::source_location const& loc = std::source_location::current()) {
+      query = database.CreateQueryObject();
+      SetSQL(strSQL, loc);
       }
 
    bool SetSQL(std::string const& strSQL, std::source_location const& loc = std::source_location::current()) {
@@ -83,11 +89,11 @@ public:
    std::optional<ret_type> Get(std::string const& field, bool required = false, src_loc const& loc = src_loc::current()) {
       try {
          return framework::Get<ret_type>(query, field, required);
-      }
+         }
       catch (std::exception& ex) {
          throw TMy_Db_Exception(std::format("error for get attribute: {}", field), ex.what(), database.Status(), GetSQL(), loc);
+         }
       }
-   }
 
    template <my_db_param_type param_type>
    bool Set(std::string const& field_name, param_type const& param, bool required = false, src_loc const& loc = src_loc::current()) {
@@ -226,6 +232,15 @@ public:
          database.setUserName(QString::fromStdString(srv.User()));
          database.setPassword(QString::fromStdString(srv.Password()));
          }
+      else if constexpr (std::is_same<base_type, TMyInterbase>::value) {
+         database = database_type::addDatabase("QIBASE");
+         param += srv.HostName() + ":"s + std::to_string(srv.Port()) + "/"s + srv.DatabaseName();
+         database.setHostName(QString::fromStdString(srv.HostName()));
+         database.setPort(srv.Port());
+         database.setDatabaseName(QString::fromStdString(srv.DatabaseName()));
+         database.setUserName(QString::fromStdString(srv.User()));
+         database.setPassword(QString::fromStdString(srv.Password()));
+         }
       else static_assert_no_supported();
 
       if (auto ret = database.open(); ret == true) return { ret, ""s };
@@ -294,7 +309,7 @@ public:
       if (!query.isActive() || !query.isValid()) throw std::runtime_error("Query isn't active or valid.");
       QVariant attribut = query.value(QString::fromStdString(field));
       if (!attribut.isValid()) {
-         if (required) throw std::runtime_error(std::format("attribute {} isn't valid.", field));
+         if (required) throw std::runtime_error(std::format("attribute {} is required.", field));
          else return { };
          }
       else {
@@ -306,10 +321,16 @@ public:
          else if constexpr (std::is_same<ret_type, unsigned int>::value) return std::make_optional(attribut.toUInt());
          else if constexpr (std::is_same<ret_type, long long>::value) return std::make_optional(attribut.toLongLong());
          else if constexpr (std::is_same<ret_type, unsigned long long>::value) return std::make_optional(attribut.toULongLong());
+         else if constexpr (std::is_same<ret_type, short>::value) {
+            bool ret = true;
+            if (auto val = attribut.toInt(&ret); ret && val >= std::numeric_limits<short>::min() &&
+                    val <= std::numeric_limits<short>::max()) return std::make_optional(static_cast<short>(val));
+            else throw std::runtime_error(std::format("{} can't converted to a short value.", val));
+            }
          else if constexpr (std::is_same<ret_type, float>::value) return std::make_optional(attribut.toFloat());
          else if constexpr (std::is_same<ret_type, double>::value) return std::make_optional(attribut.toDouble());
          else if constexpr(std::is_same<ret_type, std::chrono::year_month_day>::value) {
-            QDate date = attribut.toDateTime().date().toDateTime();
+            QDate date = attribut.toDateTime().date();
             return std::make_optional(std::chrono::year_month_day { std::chrono::year(date.year()),
                                                                     std::chrono::month(date.month()),
                                                                     std::chrono::day(date.day()) });
@@ -327,8 +348,18 @@ public:
       if constexpr (is_optional<param_type>::value) {
          using used_type = typename std::remove_const<typename std::remove_reference<typename std::decay<param_type>::type::value_type>::type>::type;
          if(!param) {
-            auto null_value = QVariant();
-            query.bindValue(field, null_value);
+            if constexpr (std::is_same<std::remove_cvref_t<used_type>, std::chrono::year_month_day>::value) {
+               QVariant null_value = QVariant::fromValue<QDate>(QDate());
+               query.bindValue(field, null_value);
+               }
+            else if constexpr (std::is_same<std::remove_cvref_t<used_type>, std::chrono::system_clock::time_point>::value) {
+               QVariant null_value = QVariant::fromValue<QDateTime>(QDateTime());
+               query.bindValue(field, null_value);
+               }
+            else {
+               auto null_value = QVariant();
+               query.bindValue(field, null_value);
+               }
             return query.boundValue(field).isValid();
             }
          else {
@@ -414,12 +445,91 @@ class TMyDatabase : public framework_type<server_type> {
       TMyQuery<framework_type, server_type> CreateQuery(void) {
          TMyQuery<framework_type, server_type> tmp(*this);
          tmp.Create();
-         //tmp = std::move(framework::CreateQuery());
          return tmp;
          }
-        
+
+      TMyQuery<framework_type, server_type> CreateQuery(std::string const& strSQL) {
+         TMyQuery<framework_type, server_type> tmp(*this);
+         tmp.Create(strSQL);
+         return tmp;
+         }
+
       std::string Status(void) {
          return std::format("{} {}", framework::Connected() ? "connected to" : "disconnected from", framework::GetInformations());
          }
+
+      std::set<std::string> GetTableNames(std::string const& schema) {
+         auto query = CreateQuery();
+         std::set<std::string> setTableNames;
+         if constexpr (std::is_same<server_type, TMyMSSQL>::value) {
+            std::string strQry = "SELECT name AS TableName, SCHEMA_NAME(schema_id) AS SchemaName\n"s +
+                                 "FROM sys.tables";
+            if (schema.length() > 0) {
+               strQry += "\nWHERE SCHEMA_NAME(schema_id) = :schema";
+               query.SetSQL(strQry);
+               query.Set("schema", schema);
+               }
+            else query.SetSQL(strQry);
+            }
+         else if constexpr (std::is_same<server_type, TMyMySQL>::value) {
+            std::string strQry = "SELECT table_name AS TableName, table_schema AS SchemaName\n"s +
+                                 "FROM information_schema.tables\n"s +
+                                 "WHERE table_type = 'BASE TABLE' AND table_schema = :schema"s;
+            query.SetSQL(strQry);
+            if (schema.length() > 0) query.Set("schema", schema);
+            else query.Set("schema", server_type::Database());
+            }
+         else if constexpr (std::is_same<server_type, TMyOracle>::value) {
+            std::string strQry = "SELECT TABLE_NAME AS TableName, OWNER AS SchemaName\n"s +
+                                 "FROM ALL_TABLES"s;
+            if (schema.length() > 0) {
+               strQry += "\nWHERE OWNER = :schema"s;
+               query.SetSQL(strQry);
+               query.Set("schema", schema);
+               }
+            else query.SetSQL(strQry);
+            }
+         for(query.Execute(), query.First(); !query.IsEof(); query.Next()) {
+            setTableNames.insert(query.Get<std::string>("TableName").value_or("leer"));
+            }
+         return setTableNames;
+         }
+
+      std::set<std::string> GetViewNames(std::string const& schema) {
+         auto query = CreateQuery();
+         std::set<std::string> setViewNames;
+         if constexpr (std::is_same<server_type, TMyMSSQL>::value) {
+            std::string strQry = "SELECT name AS ViewName, SCHEMA_NAME(schema_id) AS SchemaName\n"s +
+               "FROM sys.views";
+            if (schema.length() > 0) {
+               strQry += "\nWHERE SCHEMA_NAME(schema_id) = :schema";
+               query.SetSQL(strQry);
+               query.Set("schema", schema);
+            }
+            else query.SetSQL(strQry);
+         }
+         else if constexpr (std::is_same<server_type, TMyMySQL>::value) {
+            std::string strQry = "SELECT table_name AS ViewName, table_schema AS SchemaName\n"s +
+               "FROM information_schema.views\n"s +
+               "WHERE table_schema = :schema"s;
+            query.SetSQL(strQry);
+            if (schema.length() > 0) query.Set("schema", schema);
+            else query.Set("schema", server_type::Database());
+         }
+         else if constexpr (std::is_same<server_type, TMyOracle>::value) {
+            std::string strQry = "SELECT VIEW_NAME AS ViewName, OWNER AS SchemaName\n"s +
+               "FROM ALL_VIEWS"s;
+            if (schema.length() > 0) {
+               strQry += "\nWHERE OWNER = :schema"s;
+               query.SetSQL(strQry);
+               query.Set("schema", schema);
+            }
+            else query.SetSQL(strQry);
+         }
+         for (query.Execute(), query.First(); !query.IsEof(); query.Next()) {
+            setViewNames.insert(query.Get<std::string>("ViewName").value_or("leer"));
+         }
+         return setViewNames;
+      }
 
    };

@@ -272,11 +272,85 @@ public:
 };
 
 
+class TMyInterbase : public TMyCredential {
+   friend void swap(TMyInterbase& lhs, TMyInterbase& rhs) { lhs.swap(rhs); }
+private:
+   std::string strHostName;
+   int         iPort;
+   std::string strDatabaseName;
+public:
+   constexpr TMyInterbase(std::string const& hst, int prt, std::string const& db, std::string const& usr, std::string const& pwd) :
+      TMyCredential(usr, pwd), strHostName(hst), iPort(prt), strDatabaseName(db) { }
+   TMyInterbase() : TMyInterbase("localhost"s, 3050, ""s, ""s, ""s) { }
+   TMyInterbase(std::string const& d, std::string const& usr, std::string const& pwd) :
+      TMyInterbase("localhost", 3050, d, usr, pwd) { }
+
+   TMyInterbase(TMyInterbase const& ref) : TMyCredential(ref), strHostName(ref.strHostName), iPort(ref.iPort), strDatabaseName(ref.strDatabaseName) { }
+
+   TMyInterbase(TMyInterbase&& ref) noexcept { swap(ref); }
+
+
+   TMyInterbase& operator = (TMyInterbase const& ref) {
+      strHostName = ref.strHostName;
+      iPort = ref.iPort;
+      strDatabaseName = ref.strDatabaseName;
+      static_cast<TMyCredential&>(*this).operator = (static_cast<TMyCredential const&>(ref));
+      return *this;
+   }
+
+   TMyInterbase& operator = (TMyInterbase&& ref) noexcept {
+      swap(ref);
+      return *this;
+   }
+
+   TMyInterbase& operator += (TMyCredential const& ref) {
+      static_cast<TMyCredential&>(*this).operator = (static_cast<TMyCredential const&>(ref));
+      return *this;
+   }
+
+   TMyInterbase& operator += (TMyCredential&& ref) noexcept {
+      static_cast<TMyCredential&>(*this).swap(ref);
+      return *this;
+   }
+
+   void swap(TMyInterbase& ref) noexcept {
+      using std::swap;
+      swap(strHostName, ref.strHostName);
+      swap(iPort, ref.iPort);
+      swap(strDatabaseName, ref.strDatabaseName);
+   }
+
+   std::string const& HostName(void) const { return strHostName; }
+   int                Port(void) const { return iPort; }
+   std::string const& DatabaseName(void) const { return strDatabaseName; }
+
+   static constexpr std::string ServerType() { return "Interbase"s; }
+
+   std::string GetDatabase(void) const {
+      return std::format("{} at {}:{}", strDatabaseName, strHostName, iPort);
+   }
+
+   std::string GetServer(void) const {
+      return std::format("{1:} at {0:}", ServerType(), GetDatabase());
+   }
+
+   std::string GetInformations(void) const {
+      return std::format("{} @ {})", GetServer(), User());
+   }
+
+   static bool HasIntegratedSecurity() { return false; }
+};
+
+
+
+
+
 template <typename ty>
 struct is_my_db_credentials {
    static constexpr bool value = std::is_same<std::remove_cvref_t<ty>, TMyMSSQL>::value ||
                                  std::is_same<std::remove_cvref_t<ty>, TMyOracle>::value ||
-                                 std::is_same<std::remove_cvref_t<ty>, TMyMySQL>::value;
+                                 std::is_same<std::remove_cvref_t<ty>, TMyMySQL>::value ||
+                                 std::is_same<std::remove_cvref_t<ty>, TMyInterbase>::value;
 };
 
 template <typename ty>
