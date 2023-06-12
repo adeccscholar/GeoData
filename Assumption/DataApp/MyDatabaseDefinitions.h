@@ -1,24 +1,39 @@
 ﻿#pragma once
 
 #include <string>
+#include <chrono>
 #include <optional>
+#include <vector>
 #include <tuple>
+#include <variant>
 #include <type_traits>
 #include <concepts>
-#include <chrono>
+
 
 //using my_date = std::chrono::year_month_day;
 //using my_timestamp = std::chrono::system_clock::time_point>;
 
 template <typename... Types>
 struct my_type_list {
-   using type_list = std::tuple<Types...>;
+   using type_list    = std::tuple<Types...>;
+   using type_variant = std::variant<Types...>;
 };
 
-using my_defined_value_types = my_type_list<int, long, long long, bool, double, 
+using my_defined_value_types = my_type_list<int, double, long long, 
                                             std::string, 
                                             std::chrono::year_month_day,
                                             std::chrono::system_clock::time_point>;
+
+using my_db_value  = typename my_defined_value_types::type_variant;
+using my_db_param  = std::tuple < std::string, my_db_value, bool>;
+using my_db_params = std::vector<my_db_param>;
+
+/*
+using my_db_value = std::variant<int, long, long long, bool, double,
+                                 std::string,
+                                 std::chrono::year_month_day,
+                                 std::chrono::system_clock::time_point>;
+*/
 
 // -------------------------------------------------------------------------------
 
@@ -190,7 +205,7 @@ concept my_db_frame_work = my_db_credentials<server_type> &&
    } && my_types_for_get_and_set<framework_type<server_type>, typename framework_type<server_type>::query_type>;
 };
 
-// Forward Declaration for TMyDatabase and TMyQuery
+// Forward Declaration for TMyDatabase and concept to control
 
 template <template <class> typename framework_type, typename server_type>
 concept my_db_declaration = my_db_frame_work<framework_type, server_type>;

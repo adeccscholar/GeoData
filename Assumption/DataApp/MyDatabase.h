@@ -34,10 +34,9 @@ public:
 
    operator typename framework::query_conv() { return query; }
 
-   void Create() { //framework::database_para db) {
-      //query = framework::CreateQuery(database);
+   void Create() { 
       query = database.CreateQueryObject();
-   }
+      }
 
    bool SetSQL(std::string const& strSQL, std::source_location const& loc = std::source_location::current()) {
       params.clear();
@@ -46,12 +45,12 @@ public:
       static const std::string format("$2");
       for (auto it = std::sregex_iterator(strSQL.begin(), strSQL.end(), parser); it != std::sregex_iterator(); ++it) {
          params.emplace_back(std::regex_replace(it->str(), parser, format));
-      }
+         }
       if (auto [ret, msg] = framework::SetSQL(query, strSQL); !ret) [[unlikely]] {
          throw TMy_Db_Exception("Statement couldn't be set.", msg, database.Status(), strSQL, loc);
-      }
+         }
       else return ret;
-   }
+      }
 
    std::string GetSQL(void) {
       return framework::GetSQL(query);
@@ -70,6 +69,11 @@ public:
       }
       return ret;
    }
+
+   bool Execute(my_db_params const& params, src_loc const& loc = src_loc::current()) {
+      Set(params);
+      return Execute(loc);
+      }
 
    bool First(void) { return framework::First(query); }
    bool IsEof(void) { return framework::IsEof(query); }
@@ -91,11 +95,26 @@ public:
       else {
          if (!required) [[likely]] return found;
          else
-            throw TMy_Db_Exception("error by set parameter for query", std::format("required Parameter \"{}\" not found.", field_name), database.Status(), GetSQL(), loc);
+            throw TMy_Db_Exception("error by set parameter for query", 
+		                           std::format("required Parameter \"{}\" not found.", field_name), 
+								   database.Status(), 
+								   GetSQL(), loc);
       }
    }
 
+   template<typename... Ts>
+   void CallSet(std::string const& field_name, bool required, std::variant<Ts...> const& variant) {
+      ((std::holds_alternative<Ts>(variant) ? (Set(field_name, std::get<Ts>(variant), required), true) : false) || ...);
+   }
 
+   bool Set(my_db_params const& params) {
+      for(auto const& [field, param, required] : params) {
+         CallSet(field, required, param);
+         }
+      return true;
+      }
+	  
+	  
 };
 
 
@@ -223,6 +242,19 @@ public:
       database.close();
       }
 
+   bool StartTransaction(void) {
+      if (!database.hasFeature(QSqlDriver::Transactions)) return true; // exception for a save enviroment
+      else return database.transaction();
+      }
+
+   bool Commit(void) {
+      return database.commit();
+      }
+
+   bool Rollback(void) {
+      return database.rollback();
+      } 
+
 
    // --------------------------------------------------------------------------------------------------
    // Hilfsmethoden für Querys
@@ -254,14 +286,13 @@ public:
       }
 
    static bool First(query_para query) { return query.first(); }
-   static bool IsEof(query_para query) { return query.isValid(); }
+   static bool IsEof(query_para query) { return !query.isValid(); }
    static bool Next(query_para query) { return query.next();  }
 
    template <my_db_value_type ret_type>
    static std::optional<ret_type> Get(query_para query, std::string const& field, bool required) {
       if (!query.isActive() || !query.isValid()) throw std::runtime_error("Query isn't active or valid.");
       QVariant attribut = query.value(QString::fromStdString(field));
-      // prüfen invalid and null
       if (!attribut.isValid()) {
          if (required) throw std::runtime_error(std::format("attribute {} isn't valid.", field));
          else return { };
@@ -269,7 +300,13 @@ public:
       else {
          if (attribut.isNull()) return { };
          if constexpr (std::is_same<ret_type, std::string>::value) return std::make_optional(attribut.toString().toStdString());
+         else if constexpr (std::is_same<ret_type, char>::value) return std::make_optional(attribut.toChar());
+         else if constexpr (std::is_same<ret_type, bool>::value) return std::make_optional(attribut.toBool());
          else if constexpr (std::is_same<ret_type, int>::value) return std::make_optional(attribut.toInt());
+         else if constexpr (std::is_same<ret_type, unsigned int>::value) return std::make_optional(attribut.toUInt());
+         else if constexpr (std::is_same<ret_type, long long>::value) return std::make_optional(attribut.toLongLong());
+         else if constexpr (std::is_same<ret_type, unsigned long long>::value) return std::make_optional(attribut.toULongLong());
+         else if constexpr (std::is_same<ret_type, float>::value) return std::make_optional(attribut.toFloat());
          else if constexpr (std::is_same<ret_type, double>::value) return std::make_optional(attribut.toDouble());
          else if constexpr(std::is_same<ret_type, std::chrono::year_month_day>::value) {
             QDate date = attribut.toDateTime().date().toDateTime();
@@ -309,7 +346,7 @@ public:
             query.bindValue(field, QString::fromWStdString(param));
             }
          else if constexpr (std::is_same<std::remove_cvref_t<param_type>, std::chrono::year_month_day>::value) {
-            QDate date(param.year(), static_cast<int>(param.month()), static_cast<int>(param.day()));
+            QDate date(static_cast<int>(param.year()), static_cast<unsigned>(param.month()), static_cast<unsigned>(param.day()));
             query.bindValue(field, date);
             }
          else if constexpr (std::is_same<param_type, std::chrono::system_clock::time_point>::value) {

@@ -1,3 +1,4 @@
+Use GeoDaten;
 
 DROP VIEW vw_Berliner_Strassen;
 DROP VIEW vw_Berliner_Strassen_Bezirk;
@@ -7,12 +8,15 @@ DROP VIEW vw_Berliner_Bezirke;
 
 DROP TABLE Berlin;
 
-DROP TABLE Berliner_Ortsteile
-DROP TABLE Berliner_Stadtbezirke
+DROP TABLE Berliner_Ortsteile;
+DROP TABLE Berliner_Stadtbezirke;
+
+GO
 
 CREATE TABLE Berliner_Stadtbezirke (
     Stadtbezirk        varchar(75) NULL,
     Abkuerzung         varchar(10) NULL,
+	Land_ID            integer NULL,
     Bezirk_ID          integer NULL,
     Breite_Mitte       float NULL,
     Laenge_Mitte       float NULL,
@@ -42,6 +46,7 @@ CREATE TABLE Berlin (
 	Ortsteil_ID      integer NULL,
 	Strasse_ID       integer NULL,
 	Land             varchar(75) NULL,
+	Stadt            varchar(75) NULL, 
 	Bezirk           varchar(75) NULL,
 	Ortsteil         varchar(75) NULL,
 	Strasse          varchar(75) NULL,
@@ -49,38 +54,47 @@ CREATE TABLE Berlin (
 	HNR              integer NULL,
 	ADZ              varchar(5) NULL,
 	Latitude         float NULL,
-	Longitude        float NULL
+	Longitude        float NULL,
+	Adresse_Datum    DATE NULL,
+	Strasse_Datum    DATE NULL
 );
+
+GO
 
 CREATE VIEW vw_Berliner_Bezirke
 AS
-SELECT DISTINCT Land_ID, Bezirk_ID, Land, Bezirk
+SELECT DISTINCT Land_ID, Bezirk_ID, Land, Stadt, Bezirk
 FROM Berlin;
 
+GO
 
 CREATE VIEW vw_Berliner_Ortsteile
 AS
-SELECT DISTINCT Land_ID, Bezirk_ID, Ortsteil_ID, Land, Bezirk, Ortsteil
+SELECT DISTINCT Land_ID, Bezirk_ID, Ortsteil_ID, Land, Stadt, Bezirk, Ortsteil
 FROM Berlin;
 
+GO
 
 CREATE VIEW vw_Berliner_Strassen_Ortsteile
 AS
-SELECT DISTINCT Land_ID, Bezirk_ID,  Ortsteil_ID, Strasse_ID, Land, Bezirk, Ortsteile, Strasse
+SELECT DISTINCT Land_ID, Bezirk_ID,  Ortsteil_ID, Strasse_ID, Land, Stadt, Bezirk, Ortsteil, Strasse
 FROM Berlin;
 
+GO
 
 CREATE VIEW vw_Berliner_Strassen_Bezirk
 AS
-SELECT DISTINCT Land_ID, Bezirk_ID, Strasse_ID, Land, Bezirk, Strasse
+SELECT DISTINCT Land_ID, Bezirk_ID, Strasse_ID, Land, Stadt, Bezirk, Strasse
 FROM Berlin;
 
+GO
 
 CREATE VIEW vw_Berliner_Strassen
 AS
 SELECT DISTINCT Land_ID, Strasse_ID, Land, Strasse
 FROM Berlin;
 
+GO
 
 INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Mitte','MI',1,52.522905,13.37536,'Rotes Rathaus','10178','Berlin','Rathausstraße','15',52.517378,13.409549);
 INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Friedrichshain-Kreuzberg','FDK',2,52.507856,13.450524,'Rathaus Friedrichshain-Kreuzberg','10969','Berlin','Frankfurter Allee','35-37',52.505428,13.444956);

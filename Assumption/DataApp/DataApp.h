@@ -16,6 +16,5 @@ public:
 private:
     Ui::DataAppClass ui;
 
-    QSqlDatabase db;
     QLabel* statusLabel;
 };

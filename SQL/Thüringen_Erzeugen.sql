@@ -64,12 +64,6 @@ GO
 
 
 
-
-
-
-
-
-
 CREATE TABLE Thueringen_Kreise (
    Kreis                   varchar(75) NULL,
    Abkuerzung              varchar(10) NULL,
