@@ -23,21 +23,27 @@
 class TProcess {
 public:
    // Einstellungen für das konkrete Programm
-   using concrete_db_server     = TMyMSSQL; // TMyMSSQL TMyMySQL TMyOracle TMyInterbase
+   using concrete_db_server     = TMyMSSQL; // TMyMSSQL TMyMySQL TMyOracle TMyInterbase TMySQLite
    using concrete_framework     = TMyQtDb<concrete_db_server>;   // Möglichkeit, define zu nutzen
    using concrete_db_connection = TMyDatabase<TMyQtDb, concrete_db_server>;
    using concrete_query         = TMyQuery<TMyQtDb, concrete_db_server>;
 
+   enum class EEntity_type : int { unknow, table, view };
+   using existing_entity_sets_type = std::vector<std::pair<EEntity_type, std::string>>;
+
+
    using control_data = std::tuple<std::string, std::vector<tplList<Narrow>>, std::function <void(std::ostream&, concrete_query const&)>>;
 
-   enum class migrate_data_columns : int { theme = 0, base_table, input_file, delimiter, del_stmt, ins_stmt, set };
-   using migrate_data = std::tuple </*  0 */ std::string,        // theme
-                                    /*  1 */ std::string,        // table to check
-                                    /*  2 */ std::string,        // input file
-                                    /*  3 */ std::string_view,   // delimiter for file
-                                    /*  4 */ std::string,        // statement for delete
-                                    /*  5 */ std::string,        // statement for insert
-                                    /*  6 */ std::function <bool(concrete_query&, std::vector<std::string_view> const&)>>;
+   enum class migrate_data_columns : int { theme = 0, to_delete, to_create, input_file, delimiter, additional, del_stmt, ins_stmt, set };
+   using migrate_data = std::tuple </*  0 */ std::string,                 // theme
+                                    /*  1 */ existing_entity_sets_type,   // table to check
+                                    /*  2 */ std::vector<std::string>,    // Statements for create tables in database
+                                    /*  3 */ std::string,                 // input file
+                                    /*  4 */ std::string_view,            // delimiter for file
+                                    /*  5 */ std::string,                 // additional sql staements
+                                    /*  6 */ std::vector<std::string>,    // statement for delete
+                                    /*  7 */ std::string,                 // statement for insert
+                                    /*  8 */ std::function <bool(concrete_query&, std::vector<std::string_view> const&)>>;
    using myCaption  = tplList<Narrow>;
    using myCaptions = std::vector<myCaption>;
    enum class show_data_columns : int { theme = 0, query, set, columns, show, confirm, select, 

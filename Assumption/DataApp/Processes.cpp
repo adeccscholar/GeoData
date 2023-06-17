@@ -191,12 +191,22 @@ ty CreateTest(void) {
       return database;
       }
    else if constexpr (std::is_same<ty, TMyOracle>::value) {
-      TMyOracle database{ true, "XE.WORLD", "system", "" };
-      // TMyOracle database { "localhost", 1521, "XE", "system", "" };
+      // Setzen Sie den Pfad zur TNS-Datei
+      qputenv("QOCI_CONFIG_FILE", "C:\\Oracle\\tnsnames.ora");
+
+      // Setzen Sie den Datenbanktreiber auf QOCI oder QOCI8
+      qputenv("QT_DATABASE_DRIVERS", "QOCI");
+
+      TMyOracle database{ true, "XE", "system", "adecc#test2023" };
+      //TMyOracle database { "localhost", 1521, "XE", "system", "" };
       return database;
       }
    else if constexpr (std::is_same<ty, TMyInterbase>::value) {
-      TMyInterbase database{ "d:\\test\\Datenbank\\GEODATEN.GDB", "sysdba", "" };
+      TMyInterbase database{ "D:\\Test\\Datenbank\\GEODATEN.GDB", "SYSDBA", "" };
+      return database;
+      }
+   else if constexpr (std::is_same<ty, TMySQLite>::value) {
+      TMySQLite database{ "d:\\test\\datenbank\\geodaten.sqlite" };
       return database;
       }
    }
@@ -207,25 +217,23 @@ void TProcess::connect_to_database(TMyForm&& dlg) {
    TMyWait wait;
    try {
       db = CreateTest<concrete_db_server>();
-      auto [usr, pwd, isec] = Login(std::forward<TMyForm>(dlg), strTheme, db.Integrated(), db.User());
-      db += TMyCredential { usr, pwd, db.HasIntegratedSecurity() && isec };
+
+      if(db.HasCredentials()) {
+         auto [usr, pwd, isec] = Login(std::forward<TMyForm>(dlg), strTheme, db.Integrated(), db.User());
+         db += TMyCredential { usr, pwd, db.HasIntegratedSecurity() && isec };
+         }
     
       db.Open();
-      frm.InitCombobox("cbxDistrictsBbg", Districts_Brandenburg());
-      frm.SetFirstComboBox("cbxDistrictsBbg");
+      auto allTables = db.GetTableNames("");
+      if(allTables.find("Brandenburg") != allTables.end()) {
+         frm.InitCombobox("cbxDistrictsBbg", Districts_Brandenburg());
+         frm.SetFirstComboBox("cbxDistrictsBbg");
+         }
       std::clog << db.Status() << std::endl;
       for (auto const& btn : vecButtons) frm.Enable<EMyFrameworkType::button>(btn, true);
       frm.Enable<EMyFrameworkType::button>("btnConnect", false);
       frm.SetCaption(std::format("application \"{}\" connected to {} ...", strApplication, db.GetInformations()));
       frm.Message(EMyMessageType::information, strTheme, "Connected successful to "s + db.GetInformations());
-
-      for (auto const& view : db.GetViewNames("")) {
-         std::cerr << view << std::endl;
-         }
-
-      for(auto const& table : db.GetTableNames("")) {
-         std::cerr << table << std::endl;
-         }
       }
    catch (TMy_InputError& ex) {
       HandleException(strTheme, ex);

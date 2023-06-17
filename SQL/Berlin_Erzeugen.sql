@@ -1,4 +1,4 @@
-Use GeoDaten;
+USE GeoDaten;
 
 DROP VIEW vw_Berliner_Strassen;
 DROP VIEW vw_Berliner_Strassen_Bezirk;
@@ -14,49 +14,51 @@ DROP TABLE Berliner_Stadtbezirke;
 GO
 
 CREATE TABLE Berliner_Stadtbezirke (
-    Stadtbezirk        varchar(75) NULL,
-    Abkuerzung         varchar(10) NULL,
-	Land_ID            integer NULL,
-    Bezirk_ID          integer NULL,
-    Breite_Mitte       float NULL,
-    Laenge_Mitte       float NULL,
-    Rathaus            varchar(75) NULL,
-    Rathaus_PLZ        varchar(5) NULL,
-    Rathaus_Ort        varchar(75) NULL,
-    Rathaus_Strasse    varchar(75) NULL,
-    Rathaus_Nummer     varchar(20) NULL,
-    Rathaus_Breite     float NULL,
-    Rathaus_Laenge     float NULL
+    Stadtbezirk        VARCHAR(75) NULL,
+    Abkuerzung         VARCHAR(10) NULL,
+	Land_ID            INTEGER NULL,
+    Bezirk_ID          INTEGER NULL,
+    Breite_Mitte       FLOAT NULL,
+    Laenge_Mitte       FLOAT NULL,
+    Rathaus            VARCHAR(75) NULL,
+    Rathaus_PLZ        VARCHAR(5) NULL,
+    Rathaus_Ort        VARCHAR(75) NULL,
+    Rathaus_Strasse    VARCHAR(75) NULL,
+    Rathaus_Nummer     VARCHAR(20) NULL,
+    Rathaus_Breite     FLOAT NULL,
+    Rathaus_Laenge     FLOAT NULL
 );
    
 
 CREATE TABLE Berliner_Ortsteile (
-    Land_ID      integer NULL,
-    Bezirk_ID    integer NULL, 
-    Ortsteil_ID  integer NULL, 
-    Bezirk       varchar(75) NULL, 
-    Ortsteil     varchar(75) NULL, 
-    Breite       float NULL, 
-    Laenge        float NULL
+    Land_ID      INTEGER NULL,
+    Bezirk_ID    INTEGER NULL, 
+    Ortsteil_ID  INTEGER NULL, 
+    Bezirk       VARCHAR(75) NULL, 
+    Ortsteil     VARCHAR(75) NULL, 
+    Breite       FLOAT NULL, 
+    Laenge       FLOAT NULL
 );
    
 CREATE TABLE Berlin (
-    Land_ID          integer NULL,
-	Bezirk_ID        integer NULL,
-	Ortsteil_ID      integer NULL,
-	Strasse_ID       integer NULL,
-	Land             varchar(75) NULL,
-	Stadt            varchar(75) NULL, 
-	Bezirk           varchar(75) NULL,
-	Ortsteil         varchar(75) NULL,
-	Strasse          varchar(75) NULL,
-	PLZ              varchar(5) NULL,
-	HNR              integer NULL,
-	ADZ              varchar(5) NULL,
-	Latitude         float NULL,
-	Longitude        float NULL,
+    Land_ID          INTEGER NULL,
+	Bezirk_ID        INTEGER NULL,
+	Ortsteil_ID      INTEGER NULL,
+	Strasse_ID       INTEGER NULL,
+	Land             VARCHAR(75) NULL,
+	Stadt            VARCHAR(75) NULL, 
+	Bezirk           VARCHAR(75) NULL,
+	Ortsteil         VARCHAR(75) NULL,
+	Strasse          VARCHAR(75) NULL,
+	PLZ              VARCHAR(5) NULL,
+	HNR              INTEGER NULL,
+	ADZ              VARCHAR(5) NULL,
+	Latitude         FLOAT NULL,
+	Longitude        FLOAT NULL,
 	Adresse_Datum    DATE NULL,
-	Strasse_Datum    DATE NULL
+	Strasse_Datum    DATE NULL,
+	Qualitaet        VARCHAR(100) NULL,
+	Adr_Typ          VARCHAR(100) NULL
 );
 
 GO
@@ -66,28 +68,20 @@ AS
 SELECT DISTINCT Land_ID, Bezirk_ID, Land, Stadt, Bezirk
 FROM Berlin;
 
-GO
-
 CREATE VIEW vw_Berliner_Ortsteile
 AS
 SELECT DISTINCT Land_ID, Bezirk_ID, Ortsteil_ID, Land, Stadt, Bezirk, Ortsteil
 FROM Berlin;
-
-GO
 
 CREATE VIEW vw_Berliner_Strassen_Ortsteile
 AS
 SELECT DISTINCT Land_ID, Bezirk_ID,  Ortsteil_ID, Strasse_ID, Land, Stadt, Bezirk, Ortsteil, Strasse
 FROM Berlin;
 
-GO
-
 CREATE VIEW vw_Berliner_Strassen_Bezirk
 AS
 SELECT DISTINCT Land_ID, Bezirk_ID, Strasse_ID, Land, Stadt, Bezirk, Strasse
 FROM Berlin;
-
-GO
 
 CREATE VIEW vw_Berliner_Strassen
 AS
@@ -96,17 +90,17 @@ FROM Berlin;
 
 GO
 
-INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Mitte','MI',1,52.522905,13.37536,'Rotes Rathaus','10178','Berlin','Rathausstra√üe','15',52.517378,13.409549);
+INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Mitte','MI',1,52.522905,13.37536,'Rotes Rathaus','10178','Berlin','Rathausstraﬂe','15',52.517378,13.409549);
 INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Friedrichshain-Kreuzberg','FDK',2,52.507856,13.450524,'Rathaus Friedrichshain-Kreuzberg','10969','Berlin','Frankfurter Allee','35-37',52.505428,13.444956);
-INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Pankow','PA',3,52.575607,13.425345,'Rathaus Pankow','13156','Berlin','Breite Stra√üe','24A',52.564098,13.404712);
+INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Pankow','PA',3,52.575607,13.425345,'Rathaus Pankow','13156','Berlin','Breite Straﬂe','24A',52.564098,13.404712);
 INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Charlottenburg-Wilmersdorf','CW',4,52.493034,13.309527,'Rathaus Charlottenburg-Wilmersdorf','10585','Berlin','Otto-Suhr-Allee','100',52.505939,13.295589);
-INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Spandau','SP',5,52.532738,13.202738,'Rathaus Spandau','13597','Berlin','Carl-Schurz-Stra√üe','2/6',52.534228,13.201968);
-INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Steglitz-Zehlendorf','SZ',6,52.437407,13.235389,'Rathaus Steglitz','12169','Berlin','Schlo√üstra√üe','37',52.457402,13.299266);
-INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Tempelhof-Sch√∂neberg','TS',7,52.456696,13.378567,'Rathaus Sch√∂neberg','10825','Berlin','John-F.-Kennedy-Platz','1',52.484937,13.349126);
-INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Neuk√∂lln','NK',8,52.43937,13.458079,'Rathaus Neuk√∂lln','12043','Berlin','Karl-Marx-Stra√üe','83',52.475938,13.437934);
-INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Treptow-K√∂penick','TK',9,52.426747,13.573816,'Rathaus K√∂penick','12555','Berlin','Alt-K√∂penick','21',52.452114,13.576106);
+INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Spandau','SP',5,52.532738,13.202738,'Rathaus Spandau','13597','Berlin','Carl-Schurz-Straﬂe','2/6',52.534228,13.201968);
+INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Steglitz-Zehlendorf','SZ',6,52.437407,13.235389,'Rathaus Steglitz','12169','Berlin','Schloﬂstraﬂe','37',52.457402,13.299266);
+INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Tempelhof-Schˆneberg','TS',7,52.456696,13.378567,'Rathaus Schˆneberg','10825','Berlin','John-F.-Kennedy-Platz','1',52.484937,13.349126);
+INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Neukˆlln','NK',8,52.43937,13.458079,'Rathaus Neukˆlln','12043','Berlin','Karl-Marx-Straﬂe','83',52.475938,13.437934);
+INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Treptow-Kˆpenick','TK',9,52.426747,13.573816,'Rathaus Kˆpenick','12555','Berlin','Alt-Kˆpenick','21',52.452114,13.576106);
 INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Marzahn-Hellersdorf','MH',10,52.52948,13.597586,'Rathaus Marzahn','12679','Berlin','Helene-Weigel-Platz','8',52.541502,13.586758);
-INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Lichtenberg','LB',11,52.5285,13.493551,'Rathaus Lichtenberg','10365','Berlin','M√∂llendorffstra√üe','6',52.529024,13.502508);
+INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Lichtenberg','LB',11,52.5285,13.493551,'Rathaus Lichtenberg','10365','Berlin','Mˆllendorffstraﬂe','6',52.529024,13.502508);
 INSERT INTO Berliner_Stadtbezirke (Stadtbezirk,Abkuerzung,Bezirk_ID,Breite_Mitte,Laenge_Mitte,Rathaus,Rathaus_PLZ,Rathaus_Ort,Rathaus_Strasse,Rathaus_Nummer,Rathaus_Breite,Rathaus_Laenge) VALUES ('Reinickendorf','RD',12,52.595237,13.287497,'Rathaus Reinickendorf','13435','Berlin','Eichborndamm','215-239',52.596303,13.299512);
 
 
@@ -119,7 +113,7 @@ INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortstei
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 2, 201,'Friedrichshain-Kreuzberg',   'Friedrichshain', 52.5159, 13.4543);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 2, 202,'Friedrichshain-Kreuzberg',   'Kreuzberg', 52.4972, 13.4113);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 301,'Pankow',                     'Prenzlauer Berg', 52.5379, 13.4219);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 302,'Pankow',                     'Wei√üensee', 52.5542, 13.4562);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 302,'Pankow',                     'Weiﬂensee', 52.5542, 13.4562);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 303,'Pankow',                     'Blankenburg', 52.5973, 13.4634);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 304,'Pankow',                     'Heinersdorf', 52.5793, 13.4337);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 305,'Pankow',                     'Karow', 52.6182, 13.4717);
@@ -127,8 +121,8 @@ INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortstei
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 307,'Pankow',                     'Pankow', 52.5702, 13.4079);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 308,'Pankow',                     'Blankenfelde', 52.5699, 13.4393);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 309,'Pankow',                     'Buch', 52.6364, 13.5044);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 310,'Pankow',                     'Franz√∂sisch Buchholz', 52.6161, 13.4039);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 311,'Pankow',                     'Niedersch√∂nhausen', 52.5828, 13.4002);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 310,'Pankow',                     'Franzˆsisch Buchholz', 52.6161, 13.4039);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 311,'Pankow',                     'Niederschˆnhausen', 52.5828, 13.4002);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 312,'Pankow',                     'Rosenthal', 52.5964, 13.3826);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 3, 313,'Pankow',                     'Wilhelmsruh', 52.5973, 13.3794);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 4, 401,'Charlottenburg-Wilmersdorf', 'Charlottenburg', 52.5166, 13.3082);
@@ -155,32 +149,32 @@ INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortstei
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 6, 606,'Steglitz-Zehlendorf',        'Nikolassee', 52.4322, 13.2106);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 6, 607,'Steglitz-Zehlendorf',        'Wannsee', 52.4207, 13.1552);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 6, 608,'Steglitz-Zehlendorf',        'Schlachtensee', 52.4338, 13.1764);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 701,'Tempelhof-Sch√∂neberg',       'Sch√∂neberg', 52.4829, 13.3525);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 702,'Tempelhof-Sch√∂neberg',       'Friedenau', 52.4729, 13.3339);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 703,'Tempelhof-Sch√∂neberg',       'Tempelhof', 52.4685, 13.4042);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 704,'Tempelhof-Sch√∂neberg',       'Mariendorf', 52.4392, 13.3853);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 705,'Tempelhof-Sch√∂neberg',       'Marienfelde', 52.4204, 13.3629);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 706,'Tempelhof-Sch√∂neberg',       'Lichtenrade', 52.3995, 13.4079);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 8, 801,'Neuk√∂lln<',                  'Neuk√∂lln', 52.4814, 13.4377);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 8, 802,'Neuk√∂lln<',                  'Britz', 52.4559, 13.4421);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 8, 803,'Neuk√∂lln<',                  'Buckow', 52.4319, 13.4685);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 8, 804,'Neuk√∂lln<',                  'Rudow', 52.4216, 13.5025);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 8, 805,'Neuk√∂lln<',                  'Gropiusstadt', 52.4197, 13.4606);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 901,'Treptow-K√∂penick',           'Alt-Treptow', 52.4934, 13.4611);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 902,'Treptow-K√∂penick',           'Pl√§nterwald', 52.4884, 13.4764);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 903,'Treptow-K√∂penick',           'Baumschulenweg', 52.4667, 13.5027);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 904,'Treptow-K√∂penick',           'Johannisthal', 52.4446, 13.5259);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 905,'Treptow-K√∂penick',           'Niedersch√∂neweide', 52.4558, 13.4997);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 906,'Treptow-K√∂penick',           'Altglienicke', 52.4045, 13.5527);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 907,'Treptow-K√∂penick',           'Adlershof', 52.4379, 13.5372);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 908,'Treptow-K√∂penick',           'Bohnsdorf', 52.4044, 13.6101);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 909,'Treptow-K√∂penick',           'Obersch√∂neweide', 52.4627, 13.5133);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 910,'Treptow-K√∂penick',           'K√∂penick', 52.4545, 13.5766);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 911,'Treptow-K√∂penick',           'Friedrichshagen', 52.4428, 13.6161);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 912,'Treptow-K√∂penick',           'Rahnsdorf', 52.4194, 13.6825);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 913,'Treptow-K√∂penick',           'Gr√ºnau', 52.4138, 13.5883);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 914,'Treptow-K√∂penick',           'M√ºggelheim', 52.4007, 13.6402);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 915,'Treptow-K√∂penick',           'Schm√∂ckwitz', 52.3678, 13.6315);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 701,'Tempelhof-Schˆneberg',       'Schˆneberg', 52.4829, 13.3525);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 702,'Tempelhof-Schˆneberg',       'Friedenau', 52.4729, 13.3339);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 703,'Tempelhof-Schˆneberg',       'Tempelhof', 52.4685, 13.4042);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 704,'Tempelhof-Schˆneberg',       'Mariendorf', 52.4392, 13.3853);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 705,'Tempelhof-Schˆneberg',       'Marienfelde', 52.4204, 13.3629);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 7, 706,'Tempelhof-Schˆneberg',       'Lichtenrade', 52.3995, 13.4079);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 8, 801,'Neukˆlln<',                  'Neukˆlln', 52.4814, 13.4377);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 8, 802,'Neukˆlln<',                  'Britz', 52.4559, 13.4421);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 8, 803,'Neukˆlln<',                  'Buckow', 52.4319, 13.4685);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 8, 804,'Neukˆlln<',                  'Rudow', 52.4216, 13.5025);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 8, 805,'Neukˆlln<',                  'Gropiusstadt', 52.4197, 13.4606);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 901,'Treptow-Kˆpenick',           'Alt-Treptow', 52.4934, 13.4611);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 902,'Treptow-Kˆpenick',           'Pl‰nterwald', 52.4884, 13.4764);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 903,'Treptow-Kˆpenick',           'Baumschulenweg', 52.4667, 13.5027);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 904,'Treptow-Kˆpenick',           'Johannisthal', 52.4446, 13.5259);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 905,'Treptow-Kˆpenick',           'Niederschˆneweide', 52.4558, 13.4997);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 906,'Treptow-Kˆpenick',           'Altglienicke', 52.4045, 13.5527);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 907,'Treptow-Kˆpenick',           'Adlershof', 52.4379, 13.5372);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 908,'Treptow-Kˆpenick',           'Bohnsdorf', 52.4044, 13.6101);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 909,'Treptow-Kˆpenick',           'Oberschˆneweide', 52.4627, 13.5133);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 910,'Treptow-Kˆpenick',           'Kˆpenick', 52.4545, 13.5766);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 911,'Treptow-Kˆpenick',           'Friedrichshagen', 52.4428, 13.6161);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 912,'Treptow-Kˆpenick',           'Rahnsdorf', 52.4194, 13.6825);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 913,'Treptow-Kˆpenick',           'Gr¸nau', 52.4138, 13.5883);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 914,'Treptow-Kˆpenick',           'M¸ggelheim', 52.4007, 13.6402);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11, 9, 915,'Treptow-Kˆpenick',           'Schmˆckwitz', 52.3678, 13.6315);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,10,1001,'Marzahn-Hellersdorf',        'Marzahn', 52.5368, 13.5736);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,10,1002,'Marzahn-Hellersdorf',        'Biesdorf', 52.4984, 13.5545);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,10,1003,'Marzahn-Hellersdorf',        'Kaulsdorf', 52.5001, 13.5993);
@@ -192,18 +186,18 @@ INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortstei
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,11,1104,'Lichtenberg',                'Falkenberg', 52.5382, 13.5786);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,11,1106,'Lichtenberg',                'Malchow', 52.5727, 13.4852);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,11,1107,'Lichtenberg',                'Wartenberg', 52.5654, 13.5604);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,11,1109,'Lichtenberg',                'Neu-Hohensch√∂nhausen', 52.5708, 13.4896);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,11,1110,'Lichtenberg',                'Alt-Hohensch√∂nhausen', 52.5625, 13.5042);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,11,1109,'Lichtenberg',                'Neu-Hohenschˆnhausen', 52.5708, 13.4896);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,11,1110,'Lichtenberg',                'Alt-Hohenschˆnhausen', 52.5625, 13.5042);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,11,1111,'Lichtenberg',                'Fennpfuhl', 52.5289, 13.4986);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,11,1112,'Lichtenberg',                'Rummelsburg', 52.5002, 13.4772);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1201,'Reinickendorf',              'Reinickendorf', 52.5752, 13.3292);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1202,'Reinickendorf',              'Tegel', 52.5868, 13.2909);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1203,'Reinickendorf',              'Konradsh√∂he', 52.5834, 13.2142);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1203,'Reinickendorf',              'Konradshˆhe', 52.5834, 13.2142);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1204,'Reinickendorf',              'Heiligensee', 52.6191, 13.2344);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1205,'Reinickendorf',              'Frohnau', 52.6196, 13.2827);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1206,'Reinickendorf',              'Hermsdorf', 52.6172, 13.2797);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1207,'Reinickendorf',              'Waidmannslust', 52.6162, 13.3095);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1208,'Reinickendorf',              'L√ºbars', 52.6077, 13.3379);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1208,'Reinickendorf',              'L¸bars', 52.6077, 13.3379);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1209,'Reinickendorf',              'Wittenau', 52.5986, 13.3267);
-INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1210,'Reinickendorf',              'M√§rkisches Viertel', 52.6199, 13.3651);
+INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1210,'Reinickendorf',              'M‰rkisches Viertel', 52.6199, 13.3651);
 INSERT INTO Berliner_Ortsteile (Land_ID, Bezirk_ID, Ortsteil_ID, Bezirk, Ortsteil, Breite, Laenge) VALUES (11,12,1211,'Reinickendorf',              'Borsigwalde', 52.5769, 13.3047);

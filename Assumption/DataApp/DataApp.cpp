@@ -19,11 +19,6 @@ DataApp::DataApp(QWidget *parent) : QMainWindow(parent) {
     statusLabel->setText("sbMain");
     ui.statusBar->addPermanentWidget(statusLabel);
 
-    /*
-    QList<int> sizes;
-    sizes << 3 << 1;
-    ui.mainSplitter->setSizes(sizes);
-    */
     ui.tblOutput->setAlternatingRowColors(true);
     ui.tblOutput->setStyleSheet("alternate-background-color: lightgray;selection-background-color: red;");
 

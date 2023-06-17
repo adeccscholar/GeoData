@@ -119,6 +119,7 @@
     <QtMoc Include="UserDlg.h" />
     <ClCompile Include="Processes_Show.cpp" />
     <ClCompile Include="Processes_Migrate.cpp" />
+    <ClCompile Include="Processes_Create.cpp" />
     <ClCompile Include="UserDlg.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

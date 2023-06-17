@@ -4,6 +4,11 @@
 #include <string>
 #include <format>
 
+inline [[nodiscard]] std::string trim(std::string const& input) {
+   auto pos = input.find_first_not_of(" ");
+   return input.substr(pos, input.find_last_not_of(" ") - pos + 1);
+   }
+
 inline [[nodiscard]] std::string get_current_time_and_date(auto now) {
    auto const timew = std::chrono::current_zone()->to_local(now);
    const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;

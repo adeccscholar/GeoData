@@ -110,6 +110,7 @@ public:
       }
 
    static bool HasIntegratedSecurity() { return true; }
+   static bool HasCredentials() { return true; }
 };
 
 class TMyOracle : public TMyCredential {
@@ -198,7 +199,8 @@ public:
       }
 
    static bool HasIntegratedSecurity() { return false; }
- };
+   static bool HasCredentials() { return true; }
+};
 
 
 
@@ -269,6 +271,7 @@ public:
       }
 
    static bool HasIntegratedSecurity() { return false; }
+   static bool HasCredentials() { return true; }
 };
 
 
@@ -339,6 +342,68 @@ public:
    }
 
    static bool HasIntegratedSecurity() { return false; }
+   static bool HasCredentials() { return true; }
+};
+
+class TMySQLite : public TMyCredential {
+   friend void swap(TMySQLite& lhs, TMySQLite& rhs) { lhs.swap(rhs); }
+private:
+   std::string strDatabaseName;
+public:
+   constexpr TMySQLite(std::string const& db, std::string const& usr, std::string const& pwd) :
+      TMyCredential(usr, pwd), strDatabaseName(db) { }
+   TMySQLite() : TMySQLite(""s, ""s, ""s) { }
+   TMySQLite(std::string const& d) : TMySQLite(d, ""s, ""s) { }
+
+   TMySQLite(TMySQLite const& ref) : TMyCredential(ref), strDatabaseName(ref.strDatabaseName) { }
+
+   TMySQLite(TMySQLite&& ref) noexcept { swap(ref); }
+
+
+   TMySQLite& operator = (TMySQLite const& ref) {
+      strDatabaseName = ref.strDatabaseName;
+      static_cast<TMyCredential&>(*this).operator = (static_cast<TMyCredential const&>(ref));
+      return *this;
+      }
+
+   TMySQLite& operator = (TMySQLite&& ref) noexcept {
+      swap(ref);
+      return *this;
+      }
+
+   TMySQLite& operator += (TMyCredential const& ref) {
+      static_cast<TMyCredential&>(*this).operator = (static_cast<TMyCredential const&>(ref));
+      return *this;
+      }
+
+   TMySQLite& operator += (TMyCredential&& ref) noexcept {
+      static_cast<TMyCredential&>(*this).swap(ref);
+      return *this;
+      }
+
+   void swap(TMySQLite& ref) noexcept {
+      using std::swap;
+      swap(strDatabaseName, ref.strDatabaseName);
+      }
+
+   std::string const& DatabaseName(void) const { return strDatabaseName; }
+
+   static constexpr std::string ServerType() { return "SQLite"s; }
+
+   std::string GetDatabase(void) const {
+      return std::format("{}", strDatabaseName);
+   }
+
+   std::string GetServer(void) const {
+      return std::format("{0:} with {1:}", ServerType(), GetDatabase());
+   }
+
+   std::string GetInformations(void) const {
+      return std::format("{}", GetServer());
+   }
+
+   static bool HasIntegratedSecurity() { return true; }
+   static bool HasCredentials() { return false; }
 };
 
 
@@ -350,6 +415,7 @@ struct is_my_db_credentials {
    static constexpr bool value = std::is_same<std::remove_cvref_t<ty>, TMyMSSQL>::value ||
                                  std::is_same<std::remove_cvref_t<ty>, TMyOracle>::value ||
                                  std::is_same<std::remove_cvref_t<ty>, TMyMySQL>::value ||
+                                 std::is_same<std::remove_cvref_t<ty>, TMySQLite>::value ||
                                  std::is_same<std::remove_cvref_t<ty>, TMyInterbase>::value;
 };
 
@@ -369,6 +435,7 @@ concept my_db_credentials =
                     { t.GetServer() } -> std::same_as<std::string>;
                     { t.GetInformations() } -> std::same_as<std::string>;
                     { ty::HasIntegratedSecurity() } -> std::same_as<bool>;
+                    { ty::HasCredentials() } -> std::same_as<bool>;
                  requires requires(TMyCredential const p, TMyCredential && pref) {
                     { t += p } -> std::same_as<ty&>;
                     { t += std::move(pref) } -> std::same_as<ty&>;

@@ -6,6 +6,8 @@
 #include "MyDatabaseCredentials.h"
 #include "MyDatabaseDefinitions.h"
 
+#include "MyHelper.h"
+
 #include <utility>
 #include <tuple>
 #include <type_traits>
@@ -42,6 +44,10 @@ public:
    void Create(std::string const& strSQL, std::source_location const& loc = std::source_location::current()) {
       query = database.CreateQueryObject();
       SetSQL(strSQL, loc);
+      }
+
+   bool SetSQL(std::string_view strSQL, std::source_location const& loc = std::source_location::current()) {
+      return SetSQL(std::string { strSQL.begin(), strSQL.end() });
       }
 
    bool SetSQL(std::string const& strSQL, std::source_location const& loc = std::source_location::current()) {
@@ -128,6 +134,7 @@ public:
 
 #if defined BUILD_WITH_QT
 #include <QtSQL>
+#include <qsqldatabase.h>
 
 template <my_db_credentials base_type>
 class TMyQtDb : public base_type {
@@ -210,9 +217,9 @@ public:
          database = database_type::addDatabase("QOCI");
          if(srv.UseTNS()) {
             param += "Service="s + srv.Service();
-            database.setHostName(QString::fromStdString(srv.Service()));
-            database.setDatabaseName("");
-            database.setConnectOptions(QString::fromStdString("SERVICE_NAME="s + srv.Service()));
+            database.setHostName("");
+            database.setDatabaseName(QString::fromStdString(srv.Service()));
+            //database.setConnectOptions(QString::fromStdString("SERVICE_NAME="s + srv.Service()));
          }
          else {
             param += srv.Host() + ":"s + std::to_string(srv.Port()) + "/"s + srv.Database();
@@ -240,6 +247,14 @@ public:
          database.setDatabaseName(QString::fromStdString(srv.DatabaseName()));
          database.setUserName(QString::fromStdString(srv.User()));
          database.setPassword(QString::fromStdString(srv.Password()));
+         database.setConnectOptions("CHARSET=WIN1254");
+         //database.setConnectOptions("isc_tpb_read_committed,isc_tpb_no_rec_version");
+         //database.setConnectOptions("WireCrypt=TLS");
+         //database.setConnectOptions("ISC_DPB_LC_CTYPE=Latin1");
+         }
+      else if constexpr (std::is_same<base_type, TMySQLite>::value) {
+         database = database_type::addDatabase("QSQLITE");
+         database.setDatabaseName(QString::fromStdString(srv.DatabaseName()));
          }
       else static_assert_no_supported();
 
@@ -257,16 +272,22 @@ public:
       database.close();
       }
 
+   bool HasLastID(void) const {
+      return database.driver()->hasFeature(QSqlDriver::LastInsertId);
+      }
+
    bool StartTransaction(void) {
-      if (!database.hasFeature(QSqlDriver::Transactions)) return true; // exception for a save enviroment
+      if (!database.driver()->hasFeature(QSqlDriver::Transactions)) return true; // exception for a save enviroment
       else return database.transaction();
       }
 
    bool Commit(void) {
+      if (!database.driver()->hasFeature(QSqlDriver::Transactions)) return true;
       return database.commit();
       }
 
    bool Rollback(void) {
+      if (!database.driver()->hasFeature(QSqlDriver::Transactions)) return true;
       return database.rollback();
       } 
 
@@ -275,16 +296,8 @@ public:
    // Hilfsmethoden für Querys
 
    static std::pair<bool, std::string> SetSQL(query_para query, std::string const& strSQL) {
-      if (auto ret = query.prepare(QString::fromStdString(strSQL)); ret) return { ret, ""s };
+      if (auto ret = query.prepare(QString::fromLatin1(QByteArray::fromStdString(strSQL))); ret) return { ret, ""s };
       else { 
-         /*
-         std::ostringstream params;
-         params << "Parameter:\n";
-         //for (auto const& para : query.boundValues()) params.emplace_back(para.toString().toStdString());
-         std::ranges::copy(query.boundValues()
-                             | std::views::transform([](auto d) { return d.toString().toStdString(); }),
-                           std::ostream_iterator<std::string>(std::cout, "\n"));
-         */
          return { ret, query.lastError().text().toStdString() };
          }
       }
@@ -330,13 +343,29 @@ public:
          else if constexpr (std::is_same<ret_type, float>::value) return std::make_optional(attribut.toFloat());
          else if constexpr (std::is_same<ret_type, double>::value) return std::make_optional(attribut.toDouble());
          else if constexpr(std::is_same<ret_type, std::chrono::year_month_day>::value) {
-            QDate date = attribut.toDateTime().date();
-            return std::make_optional(std::chrono::year_month_day { std::chrono::year(date.year()),
-                                                                    std::chrono::month(date.month()),
-                                                                    std::chrono::day(date.day()) });
+            if constexpr (std::is_same<base_type, TMySQLite>::value) {
+               QDate   date = QDate::fromString(attribut.toString(), "yyyy-MM-dd");
+               return std::make_optional(std::chrono::year_month_day { std::chrono::year(date.year()),
+                                         std::chrono::month(date.month()),
+                                         std::chrono::day(date.day()) });
+               }
+            else {
+               QDate date = attribut.toDateTime().date();
+               return std::make_optional(std::chrono::year_month_day { std::chrono::year(date.year()),
+                                                                       std::chrono::month(date.month()),
+                                                                       std::chrono::day(date.day()) });
+               }
             }
          else if constexpr (std::is_same<ret_type, std::chrono::system_clock::time_point>::value) {
-            std::chrono::system_clock::time_point timePoint = std::chrono::system_clock::from_time_t(attribut.toDateTime().toSecsSinceEpoch());
+            if constexpr (std::is_same<base_type, TMySQLite>::value) {
+               QDateTime dateTime = QDateTime::fromString(attribut.toString(), Qt::ISODate);
+               std::chrono::system_clock::time_point timePoint = std::chrono::system_clock::from_time_t(dateTime.toSecsSinceEpoch());
+               return std::make_optional(timePoint);
+               }
+            else {
+               std::chrono::system_clock::time_point timePoint = std::chrono::system_clock::from_time_t(attribut.toDateTime().toSecsSinceEpoch());
+               return std::make_optional(timePoint);
+               }
             }
          else static_assert_no_supported();
          }
@@ -487,10 +516,38 @@ class TMyDatabase : public framework_type<server_type> {
                query.SetSQL(strQry);
                query.Set("schema", schema);
                }
+            else {
+              // strQry += "\nWHERE OWNER NOT LIKE 'SYS%'"s;
+               query.SetSQL(strQry);
+               }
+            }
+         else if constexpr (std::is_same<server_type, TMyInterbase>::value) {
+            std::string strQry = "SELECT RDB$RELATION_NAME AS TableName, RDB$OWNER_NAME AS SchemaName\n"s +
+                                 "FROM RDB$RELATIONS\n"s +
+                                 "WHERE RDB$VIEW_BLR IS NULL"s;
+            if (schema.length() > 0) {
+               strQry += "\n      AND RDB$RELATION_SCHEMA = :schema"s;
+               query.SetSQL(strQry);
+               query.Set("schema", schema);
+               }
             else query.SetSQL(strQry);
             }
+         else if constexpr (std::is_same<server_type, TMySQLite>::value) {
+            std::string strQry = "SELECT name AS TableName, 'main' AS SchemaName\n"s +
+                                 "FROM sqlite_master\n"s +
+                                 "WHERE type = 'table'"s;
+            query.SetSQL(strQry);
+            }
+
          for(query.Execute(), query.First(); !query.IsEof(); query.Next()) {
-            setTableNames.insert(query.Get<std::string>("TableName").value_or("leer"));
+            if constexpr (std::is_same<server_type, TMyInterbase>::value) {
+               auto table = query.Get<std::string>("TableName");
+               if (table)
+                  setTableNames.insert(trim(*table));
+               }
+            else {
+               setTableNames.insert(query.Get<std::string>("TableName").value_or("leer"));
+               }
             }
          return setTableNames;
          }
@@ -505,9 +562,9 @@ class TMyDatabase : public framework_type<server_type> {
                strQry += "\nWHERE SCHEMA_NAME(schema_id) = :schema";
                query.SetSQL(strQry);
                query.Set("schema", schema);
-            }
+               }
             else query.SetSQL(strQry);
-         }
+            }
          else if constexpr (std::is_same<server_type, TMyMySQL>::value) {
             std::string strQry = "SELECT table_name AS ViewName, table_schema AS SchemaName\n"s +
                "FROM information_schema.views\n"s +
@@ -515,20 +572,48 @@ class TMyDatabase : public framework_type<server_type> {
             query.SetSQL(strQry);
             if (schema.length() > 0) query.Set("schema", schema);
             else query.Set("schema", server_type::Database());
-         }
+            }
          else if constexpr (std::is_same<server_type, TMyOracle>::value) {
             std::string strQry = "SELECT VIEW_NAME AS ViewName, OWNER AS SchemaName\n"s +
-               "FROM ALL_VIEWS"s;
+                                 "FROM ALL_VIEWS"s;
             if (schema.length() > 0) {
                strQry += "\nWHERE OWNER = :schema"s;
                query.SetSQL(strQry);
                query.Set("schema", schema);
+               }
+            else {
+              // strQry += "\nWHERE OWNER NOT LIKE 'SYS%'"s;
+               query.SetSQL(strQry);
+               }
             }
+         else if constexpr (std::is_same<server_type, TMyInterbase>::value) {
+            std::string strQry = "SELECT RDB$RELATION_NAME AS ViewName, RDB$OWNER_NAME AS SchemaName\n"s +
+                                 "FROM RDB$RELATIONS\n"s +
+                                 "WHERE RDB$VIEW_BLR IS NOT NULL"s;
+            if (schema.length() > 0) {
+               strQry += "\n      AND RDB$RELATION_SCHEMA = :schema"s;
+               query.SetSQL(strQry);
+               query.Set("schema", schema);
+               }
             else query.SetSQL(strQry);
-         }
+            }
+         else if constexpr (std::is_same<server_type, TMySQLite>::value) {
+            std::string strQry = "SELECT name AS ViewName, 'main' AS SchemaName\n"s +
+                                 "FROM sqlite_master\n"s + 
+                                 "WHERE type = 'view'"s;
+            query.SetSQL(strQry);
+            }
+
          for (query.Execute(), query.First(); !query.IsEof(); query.Next()) {
-            setViewNames.insert(query.Get<std::string>("ViewName").value_or("leer"));
-         }
+            if constexpr (std::is_same<server_type, TMyInterbase>::value) {
+               auto view = query.Get<std::string>("ViewName");
+               if (view)
+                  setViewNames.insert(trim(*view));
+               }
+            else {
+               setViewNames.insert(query.Get<std::string>("ViewName").value_or("leer"));
+               }
+            }
          return setViewNames;
       }
 
