@@ -1,6 +1,6 @@
 ﻿
 #include "Processes.h"
-
+#include "MyLocation.h"
 #include "MyDatabaseExceptions.h"
 
 std::vector<TProcess::migrate_data> TProcess::MigrationControl {
@@ -636,8 +636,8 @@ void TProcess::insert_into_database(std::vector<migrate_variants> kinds) {
             }
 
          // additional statements
-         strBuffer.clear();
-         for (auto const& line : my_lines{ GetContent(std::get<col_val(migrate_data_columns::additional)>(contrl), strBuffer) }) {
+         std::wstring strwBuffer;
+         for (auto const& line : my_lines<call_with_wstring>{ GetContent<call_with_wstring>(std::get<col_val(migrate_data_columns::additional)>(contrl), strwBuffer) }) {
             if(line.length() > 0) {
                query.SetSQL(line);
                query.Execute();

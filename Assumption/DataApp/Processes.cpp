@@ -1,4 +1,5 @@
-﻿#include "Processes.h"
+﻿#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+#include "Processes.h"
 
 #include "MyLocation.h"
 
@@ -52,12 +53,20 @@ void TProcess::test_function() {
    std::cerr << std::format("{:%d.%m.%Y %X} ", time_point);
    std::cerr << iso_calendar_week << std::endl;
    */
+   /*
    double x = 15;
    x = x * std::numbers::pi_v<double> / 180.0;
    std::cerr << x << std::endl;
    double y = 2.699;
    double r = y / std::tan(x);
    std::cerr << r << std::endl;
+   */
+   TStreamWrapper<Wide> old_wcerr { std::wcerr };
+   frm.GetAsStream<Wide, EMyFrameworkType::memo>(old_wcerr, "txtError");
+   std::wstring strBuffer;
+   for(auto const& line : my_lines<call_with_wstring> { GetContent<call_with_wstring>("d:\\test\\testfile.txt", strBuffer)}) {
+      std::wcerr << line << std::endl;
+      }
 }
 
 

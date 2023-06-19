@@ -64,6 +64,29 @@ public:
       else return ret;
       }
 
+   bool SetSQL(std::wstring_view strSQL, std::source_location const& loc = std::source_location::current()) {
+      return SetSQL(std::wstring { strSQL.begin(), strSQL.end() });
+   }
+
+   bool SetSQL(std::wstring const& strSQL, std::source_location const& loc = std::source_location::current()) {
+      /*
+      params.clear();
+
+      static const std::wregex parser(L"(\\:)(\\w+)(\\s|<|>|=|,|\\(|\\)|$)");
+      static const std::wstring format(L"$2");
+      for (auto it = std::wsregex_iterator(strSQL.begin(), strSQL.end(), parser); it != std::wsregex_iterator(); ++it) {
+         params.emplace_back(std::wregex_replace(it->str(), parser, format));
+      }
+      */
+      if (auto [ret, msg] = framework::SetSQL(query, strSQL); !ret) [[unlikely]] {
+         throw TMy_Db_Exception("Statement couldn't be set.", msg, database.Status(), "SQL Statement is wstring", loc);
+      }
+      else return ret;
+   }
+
+
+
+
    std::string GetSQL(void) {
       return framework::GetSQL(query);
    }
@@ -301,6 +324,14 @@ public:
          return { ret, query.lastError().text().toStdString() };
          }
       }
+
+   static std::pair<bool, std::string> SetSQL(query_para query, std::wstring const& strSQL) {
+      if (auto ret = query.prepare(QString::fromStdWString(strSQL)); ret) return { ret, ""s };
+      else {
+         return { ret, query.lastError().text().toStdString() };
+      }
+   }
+
 
    static std::string GetSQL(query_para query) { return query.lastQuery().toStdString(); }
 

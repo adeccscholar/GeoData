@@ -1,5 +1,5 @@
 ﻿#pragma once
-
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #include "MyDatabase.h"
 
 #include "MyFileIterator.h"
@@ -29,14 +29,14 @@ public:
    using concrete_query         = TMyQuery<TMyQtDb, concrete_db_server>;
 
    enum class EEntity_type : int { unknow, table, view };
-   using existing_entity_sets_type = std::vector<std::pair<EEntity_type, std::string>>;
+   using entity_type_set = std::vector<std::pair<EEntity_type, std::string>>;
 
 
    using control_data = std::tuple<std::string, std::vector<tplList<Narrow>>, std::function <void(std::ostream&, concrete_query const&)>>;
 
    enum class migrate_data_columns : int { theme = 0, to_delete, to_create, input_file, delimiter, additional, del_stmt, ins_stmt, set };
    using migrate_data = std::tuple </*  0 */ std::string,                 // theme
-                                    /*  1 */ existing_entity_sets_type,   // table to check
+                                    /*  1 */ entity_type_set,             // table to check
                                     /*  2 */ std::vector<std::string>,    // Statements for create tables in database
                                     /*  3 */ std::string,                 // input file
                                     /*  4 */ std::string_view,            // delimiter for file

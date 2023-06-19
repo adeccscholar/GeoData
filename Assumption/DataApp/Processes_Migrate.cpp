@@ -11,8 +11,8 @@ using Migrate_New_Data = std::pair<std::tuple<std::string, std::string>, std::ve
 
 
 template <my_db_credentials ty>
-std::tuple<TProcess::existing_entity_sets_type, std::vector<std::string>, Migrate_New_Data> CreateMigration(/* später Parameter möglich*/) {
-   TProcess::existing_entity_sets_type Migrate_New_Model_Berlin_Clean = {
+std::tuple<TProcess::entity_type_set, std::vector<std::string>, Migrate_New_Data> CreateMigration(/* später Parameter möglich*/) {
+   TProcess::entity_type_set Migrate_New_Model_Berlin_Clean = {
         { TProcess::EEntity_type::view,  "vw_neu_Berlin"s },
         { TProcess::EEntity_type::table, "neu_Bln_Adr_OT_Bez"s },
         { TProcess::EEntity_type::table, "neu_Bln_Adr_Str_Bez"s },
