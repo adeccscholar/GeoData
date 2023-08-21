@@ -4,7 +4,7 @@
 #include <string>
 #include <format>
 
-inline [[nodiscard]] std::string trim(std::string const& input) {
+inline [[nodiscard]] std::string trim(std::string const& input) [[reproducible]] {
    auto pos = input.find_first_not_of(" ");
    return input.substr(pos, input.find_last_not_of(" ") - pos + 1);
    }
@@ -15,7 +15,7 @@ inline [[nodiscard]] std::string get_current_time_and_date(auto now) {
    return std::format("{:%d.%m.%Y %X},{:03d}", timew, millis.count());
    }
 
-inline [[nodiscard]] std::string get_current_timestamp(auto now) {
+inline [[nodiscard]] std::string get_current_timestamp(auto now) /* [[unsequenced]] */ {
    return std::format("{:%Y%m%d%H%M}", std::chrono::current_zone()->to_local(now));
    }
 
