@@ -61,12 +61,18 @@ void TProcess::test_function() {
    double r = y / std::tan(x);
    std::cerr << r << std::endl;
    */
+
+
+
+
+   /*
    TStreamWrapper<Wide> old_wcerr { std::wcerr };
    frm.GetAsStream<Wide, EMyFrameworkType::memo>(old_wcerr, "txtError");
    std::wstring strBuffer;
    for(auto const& line : my_lines<call_with_wstring> { GetContent<call_with_wstring>("d:\\test\\testfile.txt", strBuffer)}) {
       std::wcerr << line << std::endl;
       }
+   */
 }
 
 
