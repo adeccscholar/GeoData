@@ -30,6 +30,21 @@ BEGIN
 DROP VIEW view_Berlin;
 END
 
+IF OBJECT_ID('view_Geo_Structure_Leaves_with_Path', 'V') IS NOT NULL
+BEGIN
+DROP VIEW view_Geo_Structure_Leaves_with_Path;
+END
+
+IF OBJECT_ID('view_Geo_Structure_Predecessors', 'V') IS NOT NULL
+BEGIN
+DROP VIEW view_Geo_Structure_Predecessors;
+END
+
+IF OBJECT_ID('view_Geo_Structure_Subordinates', 'V') IS NOT NULL
+BEGIN
+DROP VIEW view_Geo_Structure_Subordinates;
+END
+
 IF OBJECT_ID('view_Geo_Structure', 'V') IS NOT NULL
 BEGIN
 DROP VIEW view_Geo_Structure;
@@ -91,6 +106,9 @@ GO
 
 /* ------------------------------------------------------------------------------------------------------------------
     Tabelle mit Werten für die Statistik - Informationen (NUTS Ebenen)
+	NUTS (Nomenclature des unités territoriales statistiques) 
+	hierarchisches System, das von Eurostat verwendet wird, um statistische Regionen in der EU zu definieren
+	Achtung, unterhalb von NUTS gibt es eine LAU Ebene (Local Administrative Units) 
  ------------------------------------------------------------------------------------------------------------------ */
 
 
@@ -124,7 +142,7 @@ CREATE TABLE Geographic_Units_Range (
   );
 
 ALTER TABLE Geographic_Units_Range ADD CONSTRAINT pk_Geo_Units_Range PRIMARY KEY (ID);
-ALTER TABLE Geographic_Units_Range ADD CONSTRAINT uk_Geo_Units_Range_Desc UNIQUE (designation);
+ALTER TABLE Geographic_Units_Range ADD CONSTRAINT uk_Geo_Units_Range_Desc UNIQUE (Designation);
 ALTER TABLE Geographic_Units_Range ADD CONSTRAINT ck_Geo_Units_Range_Is_City CHECK (Is_City = 1 OR Is_City = 0);
 ALTER TABLE Geographic_Units_Range ADD CONSTRAINT ck_Geo_Units_Range_Has_Streets CHECK (Has_Streets = 1 OR Has_Streets = 0);
 ALTER TABLE Geographic_Units_Range ADD CONSTRAINT fk_Geo_Units_Range_NUTS FOREIGN KEY (NUTS_ID) REFERENCES NUTS_Range (ID);
@@ -175,6 +193,12 @@ CREATE TABLE Geographical_Structure (
 
 GO
 
+/* ------------------------------------------------------------------------------------------------------------------
+   Funktion, ob zu überprüfen, ob mit der ParentID für die kategorie die Regeln erfüllt sind
+   wird später als Check- Bedingung verwendet, um Regeln der Struktur zu ermöglichen
+   Parameter ID : Parent ID in der Struktur
+             Category : Kategorie des Knoten, der gepüft wird
+ -------------------------------------------------------------------------------------------------------------------*/
 CREATE FUNCTION Check_Geographic_Units_Rules (@id AS INTEGER, @Category AS INTEGER) RETURNS SMALLINT
 BEGIN
    DECLARE @retval1 AS SMALLINT;
@@ -228,21 +252,81 @@ WITH FStruct AS (
   SELECT s.ID, s.Parent_ID, c.Super_ID, c.Level + 1
   FROM Geographical_Structure s
   INNER JOIN FStruct c ON s.Parent_ID = c.ID
-)
+  )
 SELECT ID, Parent_ID, Super_ID, Level
 FROM FStruct;
 
 GO
 
+/* ------------------------------------------------------------------------------------------------------------------
+   Sicht um Knoten mit ihren irekten Nachfolgern auszugeben, verwendet Geographical_Structure und STUFF
+   ! Entfernen der XML Strukturdaten, da STUFF eine XML- Struktur zurückgibt
+ ------------------------------------------------------------------------------------------------------------------*/
 
 CREATE VIEW view_Geo_Structure AS
 SELECT s1.ID, s1.Description, s1.Category,
-       STUFF((SELECT ', ' + s2.Description
-              FROM Geographical_Structure s2
-              WHERE s2.Parent_ID = s1.ID
-			  ORDER BY s2.Description
-              FOR XML PATH('')), 1, 2, '') AS Subordinates
+    STUFF( (SELECT ', ' + s2.Description
+            FROM Geographical_Structure s2
+            WHERE s2.Parent_ID = s1.ID
+            ORDER BY s2.Description
+         FOR XML PATH(''), TYPE).value('.', 'VARCHAR(MAX)'), 1, 2, '') AS Subordinates
 FROM Geographical_Structure s1;
+
+GO
+
+/* ------------------------------------------------------------------------------------------------------------------
+   Sicht um alle Nachfolger eines Knoten mit ID, Category udn Describtion (alle mit Prefex Sub) abzuzeigen
+ ------------------------------------------------------------------------------------------------------------------*/
+CREATE VIEW view_Geo_Structure_Subordinates AS
+   SELECT s1.ID, s2.ID AS SubID, s2.Category AS SubCategory, s2.Description AS SubDescription
+   FROM Geographical_Structure s1 join Geographical_Structure s2 ON s2.Parent_ID = s1.ID;
+GO
+
+/* ------------------------------------------------------------------------------------------------------------------
+   Sicht um alle Vorgänger eines Knoten mit ID als SubID zu finden, inklusive dem Knoten selber (Level = 0)
+   Level ist Abstand vom gesuchten Knoten
+ ------------------------------------------------------------------------------------------------------------------*/
+CREATE VIEW view_Geo_Structure_Predecessors AS
+WITH BackCTE AS (
+       SELECT t.ID AS ID, t.ID AS BackID, t.Parent_ID, 0 AS Level
+       FROM tree_Geo_Structure t
+
+       UNION ALL
+	  
+       SELECT b.ID, t.ID AS BackID, t.Parent_ID, b.Level + 1
+       FROM BackCTE b
+       JOIN tree_Geo_Structure t ON t.ID = b.Parent_ID
+       )
+   SELECT ID AS ID, BackID, [Level]
+   FROM BackCTE;
+
+GO
+
+/* ------------------------------------------------------------------------------------------------------------------
+   Sicht um Endknoten (Leaves) einer Struktur mit der Super_ID zu finden mit dem vollständigen Path zum Element
+   Description des Leaves, FullDescription ist Description mit vollständigen Path in Klammern
+ ------------------------------------------------------------------------------------------------------------------*/
+CREATE VIEW view_Geo_Structure_Leaves_with_Path AS
+WITH PathCTE AS (
+    SELECT a.ID, s.Category, a.Parent_ID, a.Super_ID, a.Level, s.Description,
+          CAST('' AS VARCHAR(MAX)) AS [Path]
+    FROM tree_Geo_Structure a JOIN Geographical_Structure s ON s.ID = a.ID
+    WHERE a.Parent_ID IS NULL
+
+    UNION ALL
+
+    SELECT a.ID, s.Category, a.Parent_ID, a.Super_ID, a.Level, s.Description,
+           CAST(IIF(p.[Path] = '', p.Description, p.[Path] + ', ' + p.Description) AS VARCHAR(MAX) ) AS [Path]
+    FROM tree_Geo_Structure a JOIN Geographical_Structure s ON s.ID = a.ID
+                              JOIN PathCTE p ON a.Parent_ID = p.ID
+    )
+  SELECT p.ID, p.Category, p.Super_ID, p.Description, p.Description + ' (' + p.[Path] + ')' AS FullDescription
+  FROM PathCTE p  
+  WHERE -- p.Super_ID = 1 AND  
+        NOT EXISTS ( SELECT 1 
+                     FROM tree_Geo_Structure b 
+                     WHERE b.Parent_ID = p.ID
+                   );
 
 GO
 
@@ -254,9 +338,9 @@ CREATE VIEW view_Berlin AS
 SELECT gs.ID, 
        p.Description AS Land,
 	   NULL AS Region,
-	   NULL AS Kreis,
-       g.Description AS Bundesland,
-       c.Description AS Stadt,
+	   g.Description AS Bundesland,
+       NULL AS Kreis,
+	   c.Description AS Stadt,
        s.Description AS Stadtbezirk,
        gs.Description AS Ortsteil
 FROM Geographical_Structure gs
@@ -330,7 +414,7 @@ INSERT INTO NUTS_Range (ID, Designation, Description) VALUES
    (1, 'Land_Kz',     'NUTS Ebene 1, innerhalb Deutschlands bezogen auf die Bundesländer'),
    (2, 'Region_Kz',   'NUTS Ebene 2, Region innerhalb eines Landes, wird nicht von jedem Bundesland verwendet'),
    (3, 'Kreis_Kz',    'NUTS Ebene 3, die Kreise und kreisfreie Städte repräsentiert.'),
-   (4, 'Gemeinde_Kz', 'NUTS Ebene 4, wird für Gemeinden und Städte auf niedrigerer Ebene verwendet.'),
+   (4, 'Gemeinde_Kz', 'LAU Klassikation (wie NUTS Ebene 4), wird für Gemeinden und Städte auf niedrigerer Ebene verwendet.'),
    (5, 'Bezirk_Kz',   'Keine NUTS Nomenkladur. Identifikation für Stadtbezirke, speziell für Stadtstaatem wie Berlin, Hamburg und Bremen.'),
    (6, 'Ortsteil_Kz', 'Keine NUTS Nomenkladur. Identifikation für Ortsteile, speziell für Stadtstaaten. wie Berlin, Hamburg und Bremen.'),
    (7, 'Strasse_Kz',  'Keine NUTS Nomenkladur. Identifikation für Strassen innerhalb einer Stadt, Gemeinde, ...');
@@ -354,23 +438,133 @@ INSERT INTO Geographic_Units_Rules (Category, Parent_Category) VALUES
    (6, 4), (7, 4), (8, 5), (7, 6), (10, 6), (8, 7), (9, 8);
 GO
 
-INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (1, 1, NULL, 'Deutschland');
-INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (2, 2, 1,    'Berlin');
-INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (3, 5, 2,    'Berlin');
-INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (4, 8, 3,    'Spandau');
-INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (5, 9, 4,    'Gatow');
-INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (6, 9, 4,    'Spandau');
-INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (7, 9, 4,    'Wilhelmstadt');
-INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (8, 9, 4,    'Kladow');
-/*
-INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES 
-   (1, 1, NULL, 'Deutschland'),
-   (2, 2, 1, 'Berlin'),
-   (3, 7, 2, 'Berlin'),
-   (4, 8, 3, 'Spandau'),
-   (5, 9, 4, 'Gatow'),
-   (6, 9, 4, 'Spandau'),
-   (7, 9, 4, 'Wilhelmstadt'),
-   (8, 9, 4, 'Kladow');
-*/
+-- Land Deutschland
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (   1,  1, NULL,   'Deutschland');
+-- Bundesland Berlin
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (   2,  2,   1,    'Berlin');
+-- Stadt Berlin
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (   3,  5,   2,    'Berlin');
+-- Berliner Stadtbezirke
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (   4,  8,   3,    'Mitte');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (   5,  8,   3,    'Friedrichshain-Kreuzberg');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (   6,  8,   3,    'Pankow');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (   7,  8,   3,    'Charlottenburg-Wilmersdorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (   8,  8,   3,    'Spandau');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (   9,  8,   3,    'Steglitz-Zehlendorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  10,  8,   3,    'Tempelhof-Schöneberg');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  11,  8,   3,    'Neukölln');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  12,  8,   3,    'Treptow-Köpenick');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  13,  8,   3,    'Marzahn-Hellersdorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  14,  8,   3,    'Lichtenberg');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  15,  8,   3,    'Reinickendorf');
+-- Berlin Mitte
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  16,  9,   4,    'Mitte');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  17,  9,   4,    'Moabit');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  18,  9,   4,    'Hansaviertel');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  19,  9,   4,    'Tiergarten');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  20,  9,   4,    'Wedding');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  21,  9,   4,    'Gesundbrunnen');
+-- Berlin Friedrichshain-Kreuzberg
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  22,  9,   5,    'Friedrichshain');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  23,  9,   5,    'Kreuzberg');
+-- Berlin Pankow
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  24,  9,   6,    'Prenzlauer Berg');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  25,  9,   6,    'Weißensee');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  26,  9,   6,    'Blankenburg');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  27,  9,   6,    'Heinersdorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  28,  9,   6,    'Karow');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  29,  9,   6,    'Stadtrandsiedlung Malchow');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  30,  9,   6,    'Pankow');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  31,  9,   6,    'Blankenfelde');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  32,  9,   6,    'Buch');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  33,  9,   6,    'Französisch Buchholz');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  34,  9,   6,    'Niederschönhausen');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  35,  9,   6,    'Rosenthal');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  36,  9,   6,    'Wilhelmsruh');
+-- Berlin Charlottenburg-Wilmersdorf
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  37,  9,   7,    'Charlottenburg');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  38,  9,   7,    'Wilmersdorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  39,  9,   7,    'Schmargendorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  40,  9,   7,    'Grunewald');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  41,  9,   7,    'Westend');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  42,  9,   7,    'Charlottenburg-Nord');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  43,  9,   7,    'Halensee');
+-- Berlin Spandau
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  44,  9,   8,    'Spandau');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  45,  9,   8,    'Haselhorst');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  46,  9,   8,    'Siemensstadt');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  47,  9,   8,    'Staaken');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  48,  9,   8,    'Gatow');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  49,  9,   8,    'Kladow');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  50,  9,   8,    'Hakenfelde');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  51,  9,   8,    'Falkenhagener Feld');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  52,  9,   8,    'Wilhelmstadt');
+-- Berlin Steglitz-Zehlendorf
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  53,  9,   9,    'Steglitz');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  54,  9,   9,    'Lichterfelde');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  55,  9,   9,    'Lankwitz');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  56,  9,   9,    'Zehlendorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  57,  9,   9,    'Dahlem');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  58,  9,   9,    'Nikolassee');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  59,  9,   9,    'Wannsee');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  60,  9,   9,    'Schlachtensee');
+-- Berlin Tempelhof-Schöneberg
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  61,  9,  10,    'Schöneberg');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  62,  9,  10,    'Friedenau');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  63,  9,  10,    'Tempelhof');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  64,  9,  10,    'Mariendorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  65,  9,  10,    'Marienfelde');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  66,  9,  10,    'Lichtenrade');
+-- Berlin Neukölln
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  67,  9,  11,    'Neukölln');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  68,  9,  11,    'Britz');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  69,  9,  11,    'Buckow');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  70,  9,  11,    'Rudow');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  71,  9,  11,    'Gropiusstadt');
+-- Berlin Treptow-Köpenick
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  72,  9,  12,    'Alt-Treptow');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  73,  9,  12,    'Plänterwald');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  74,  9,  12,    'Baumschulenweg');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  75,  9,  12,    'Johannisthal');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  76,  9,  12,    'Niederschöneweide');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  77,  9,  12,    'Altglienicke');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  78,  9,  12,    'Adlershof');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  79,  9,  12,    'Bohnsdorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  80,  9,  12,    'Oberschöneweide');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  81,  9,  12,    'Köpenick');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  82,  9,  12,    'Friedrichshagen');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  83,  9,  12,    'Rahnsdorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  84,  9,  12,    'Grünau');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  85,  9,  12,    'Müggelheim');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  86,  9,  12,    'Schmöckwitz');
+-- Berlin Marzahn-Hellersdorf
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  87,  9,  13,    'Marzahn');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  88,  9,  13,    'Biesdorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  89,  9,  13,    'Kaulsdorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  90,  9,  13,    'Mahlsdorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  91,  9,  13,    'Hellersdorf');
+-- Berlin Lichtenberg
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  92,  9,  14,    'Friedrichsfelde');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  93,  9,  14,    'Karlshorst');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  94,  9,  14,    'Lichtenberg');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  95,  9,  14,    'Falkenberg');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  96,  9,  14,    'Malchow');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  97,  9,  14,    'Wartenberg');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  98,  9,  14,    'Neu-Hohenschönhausen');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES (  99,  9,  14,    'Alt-Hohenschönhausen');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 100,  9,  14,    'Fennpfuhl');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 101,  9,  14,    'Rummelsburg');
+-- Berlin Reinickendorf
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 102,  9,  15,    'Reinickendorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 103,  9,  15,    'Tegel');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 104,  9,  15,    'Konradshöhe');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 105,  9,  15,    'Heiligensee');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 106,  9,  15,    'Frohnau');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 107,  9,  15,    'Hermsdorf');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 108,  9,  15,    'Waidmannslust');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 109,  9,  15,    'Lübars');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 110,  9,  15,    'Wittenau');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 111,  9,  15,    'Märkisches Viertel');
+INSERT INTO Geographical_Structure (ID, Category, Parent_ID, Description) VALUES ( 112,  9,  15,    'Borsigwalde');
+
 GO
